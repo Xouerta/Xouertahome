@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>奇迹游戏大厅 · 艾德温的试炼场</title>
+    <style>
+        /* ===== 基础风格 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #1a0f0a;
+            background-image: radial-gradient(circle at 20% 30%, #2a1a0a66 0%, transparent 40%),
+            radial-gradient(circle at 80% 70%, #3a1a0a66 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 魔法粒子（复用） */
+        #magic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ===== 主容器 ===== */
+        .game-hall {
+            position: relative;
+            z-index: 10;
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #2a1e12;
+            background-image:
+                    radial-gradient(circle at 10% 20%, #5a3e2a66 0%, transparent 40%),
+                    repeating-linear-gradient(45deg, #3a2a1a22 0px, #3a2a1a22 4px, #2a1e1222 4px, #2a1e1222 8px);
+            box-shadow: 0 30px 60px #000000cc, 0 0 0 3px #b48654 inset, 0 0 0 8px #4a3222 inset;
+            border-radius: 40px 40px 20px 20px;
+            padding: 30px;
+            border: 1px solid #cfa86a;
+        }
+
+        /* ===== 页眉 ===== */
+        .hall-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .hall-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 4rem;
+            color: #f0dbb0;
+            text-shadow:
+                    4px 4px 0 #b48654,
+                    8px 8px 0 #5a3e2a,
+                    0 0 30px #ffaa33,
+                    0 0 60px #ff5500;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            animation: titlePulse 4s infinite alternate;
+        }
+
+        @keyframes titlePulse {
+            0% { text-shadow: 4px 4px 0 #b48654, 8px 8px 0 #5a3e2a, 0 0 30px #ffaa33, 0 0 60px #ff5500; }
+            100% { text-shadow: 4px 4px 0 #d4a56c, 10px 10px 0 #7a522a, 0 0 50px #ffcc66, 0 0 90px #ff8833; }
+        }
+
+        .hall-subtitle {
+            font-size: 1.5rem;
+            color: #dbb06c;
+            font-style: italic;
+            background: #1a0f0aaa;
+            display: inline-block;
+            padding: 10px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(3px);
+            border: 2px solid #cfa86a;
+            box-shadow: 0 6px 0 #4a3222;
+        }
+
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 10px;
+            color: #b48654;
+            font-size: 1.1rem;
+        }
+
+        .breadcrumb a {
+            color: #dbb06c;
+            text-decoration: none;
+            border-bottom: 1px dashed #b48654;
+        }
+
+        .breadcrumb a:hover {
+            color: #ffcc66;
+            border-bottom: 1px solid #ffaa33;
+        }
+
+        /* ===== 游戏分类标签 ===== */
+        .game-schools {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0 40px;
+        }
+
+        .game-tag {
+            font-family: 'MedievalSharp', cursive;
+            padding: 10px 30px;
+            background: #3a2a1a;
+            color: #dbb06c;
+            border: 2px solid #b48654;
+            border-radius: 40px 5px 40px 5px;
+            box-shadow: 4px 4px 0 #1a0f0a, 0 0 15px #ffaa3366;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .game-tag:hover,
+        .game-tag.active {
+            background: #5a3e2a;
+            color: #fff2d7;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 6px 6px 0 #1a0f0a, 0 0 30px #ffaa33, 0 0 60px #ff8833;
+            border-color: #ffdb9d;
+        }
+
+        .game-tag.active::before {
+            content: '⚡';
+            margin-right: 8px;
+        }
+
+        /* ===== 游戏网格 ===== */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* 游戏卡片 - 传送门风格 */
+        .game-card {
+            background: #2a1e12;
+            background: linear-gradient(145deg, #3a2a1a, #1a120a);
+            border: 3px solid #b48654;
+            border-radius: 30px 5px 30px 5px;
+            padding: 25px 20px;
+            box-shadow: 8px 8px 0 #0a0a0a, 0 0 0 2px #cfa86a inset;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, #ffaa3322 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 12px 12px 0 #0a0a0a, 0 0 30px #ffaa33, 0 0 0 3px #ffdb9d inset;
+            border-color: #ffdb9d;
+        }
+
+        .game-card:hover::before {
+            opacity: 1;
+            animation: portalSwirl 6s linear infinite;
+        }
+
+        @keyframes portalSwirl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 游戏图标 */
+        .game-icon {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 15px #ffaa33);
+            animation: iconFloat 3s infinite ease-in-out;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .game-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.8rem;
+            color: #f0dbb0;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #b48654;
+            padding-bottom: 8px;
+        }
+
+        .game-description {
+            color: #dbb06c;
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        /* 游戏元信息 */
+        .game-meta {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 10px 0;
+            border-top: 1px dashed #b48654;
+            border-bottom: 1px dashed #b48654;
+        }
+
+        .game-difficulty {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #dbb06c;
+        }
+
+        .difficulty-dot {
+            width: 12px;
+            height: 12px;
+            background: #4a3222;
+            border-radius: 50%;
+        }
+
+        .difficulty-dot.filled {
+            background: #ffaa33;
+            box-shadow: 0 0 10px #ffaa33;
+        }
+
+        .game-stats {
+            color: #b48654;
+            font-family: 'Special Elite', cursive;
+        }
+
+        .game-stats::before {
+            content: '🏆';
+            margin-right: 5px;
+        }
+
+        /* 游玩按钮 */
+        .play-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: #5a3e2a;
+            color: #f0dbb0;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.2rem;
+            border: 3px solid #b48654;
+            border-radius: 40px 5px 40px 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+            letter-spacing: 2px;
+        }
+
+        .play-button:hover {
+            background: #7a5a3a;
+            border-color: #ffdb9d;
+            box-shadow: 0 0 20px #ffaa33;
+            transform: scale(1.02);
+        }
+
+        /* ===== 内嵌游戏区域 ===== */
+        .active-game-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 4px double #b48654;
+        }
+
+        .active-game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .active-game-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2rem;
+            color: #f0dbb0;
+            text-shadow: 2px 2px 0 #b48654;
+        }
+
+        .close-game {
+            background: none;
+            border: 2px solid #b48654;
+            color: #dbb06c;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-game:hover {
+            background: #b48654;
+            color: #1a0f0a;
+            transform: rotate(90deg);
+        }
+
+        .game-arena {
+            background: #1a120a;
+            border: 5px solid #b48654;
+            border-radius: 40px 5px 40px 5px;
+            padding: 30px;
+            box-shadow: inset 0 0 50px #0a0a0a, 0 20px 30px #000000;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== 游戏1：占卜猜数字 ===== */
+        .guess-game {
+            text-align: center;
+            color: #f0dbb0;
+            width: 100%;
+        }
+
+        .guess-input-area {
+            margin: 30px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .guess-input {
+            background: #2a1e12;
+            border: 3px solid #b48654;
+            color: #f0dbb0;
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            width: 120px;
+            text-align: center;
+            border-radius: 30px 5px 30px 5px;
+            font-family: 'Special Elite', cursive;
+        }
+
+        .guess-input:focus {
+            outline: none;
+            border-color: #ffaa33;
+            box-shadow: 0 0 20px #ffaa33;
+        }
+
+        .guess-button {
+            background: #5a3e2a;
+            color: #f0dbb0;
+            border: 3px solid #b48654;
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            border-radius: 40px 5px 40px 5px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+        }
+
+        .guess-button:hover {
+            background: #7a5a3a;
+            border-color: #ffaa33;
+        }
+
+        .guess-hint {
+            font-size: 1.3rem;
+            margin: 20px 0;
+            min-height: 60px;
+            color: #dbb06c;
+        }
+
+        .guess-history {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .history-item {
+            background: #3a2a1a;
+            border: 2px solid #b48654;
+            padding: 8px 15px;
+            border-radius: 30px;
+            color: #f0dbb0;
+        }
+
+        /* ===== 游戏2：打地鼠（打恶魔） ===== */
+        .whack-game {
+            text-align: center;
+            color: #f0dbb0;
+            width: 100%;
+        }
+
+        .whack-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .whack-hole {
+            aspect-ratio: 1;
+            background: #2a1e12;
+            border: 4px solid #b48654;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: inset 0 0 20px #0a0a0a;
+        }
+
+        .whack-hole.active {
+            background: #5a3e2a;
+            border-color: #ffaa33;
+            box-shadow: 0 0 30px #ffaa33, inset 0 0 20px #ffaa33;
+            transform: scale(1.05);
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="%23ffaa33" d="M16 2 L20 12 L30 12 L22 19 L26 30 L16 23 L6 30 L10 19 L2 12 L12 12 Z"/></svg>') 16 16, auto;
+        }
+
+        .whack-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.3rem;
+            margin: 20px 0;
+        }
+
+        .whack-button {
+            background: #5a3e2a;
+            color: #f0dbb0;
+            border: 3px solid #b48654;
+            padding: 10px 40px;
+            font-size: 1.2rem;
+            border-radius: 40px 5px 40px 5px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            margin-top: 20px;
+        }
+
+        /* ===== 游戏3：符文记忆 ===== */
+        .memory-game {
+            text-align: center;
+            color: #f0dbb0;
+        }
+
+        .rune-sequence {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            font-size: 3rem;
+        }
+
+        .rune-sequence span {
+            background: #2a1e12;
+            border: 3px solid #b48654;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px 5px 20px 5px;
+            animation: runeGlow 1s infinite alternate;
+        }
+
+        @keyframes runeGlow {
+            from { box-shadow: 0 0 10px #ffaa33; }
+            to { box-shadow: 0 0 30px #ffaa33, 0 0 60px #ff8833; }
+        }
+
+        .memory-input-area {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .memory-input {
+            background: #2a1e12;
+            border: 3px solid #b48654;
+            color: #f0dbb0;
+            font-size: 1.5rem;
+            padding: 10px;
+            width: 80px;
+            text-align: center;
+            border-radius: 30px 5px 30px 5px;
+        }
+
+        /* ===== 页脚 ===== */
+        .hall-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #b48654;
+        }
+
+        .rune-divider {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            color: #dbb06c;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .hall-title {
+                font-size: 2.8rem;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .game-arena {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+<canvas id="magic-particles"></canvas>
+
+<div class="game-hall">
+    <!-- 页眉 -->
+    <header class="hall-header">
+        <h1 class="hall-title">🎲 奇迹游戏大厅</h1>
+        <div class="hall-subtitle">冒险者的试炼场 · 第八纪</div>
+        <div class="breadcrumb">
+            <a href="../index.html">🏠 旅者大厅</a> ✦
+            <a href="../blog/index.html">📖 知识卷轴</a> ✦
+            <span>🎮 奇迹游戏</span>
+        </div>
+    </header>
+
+    <!-- 游戏分类 -->
+    <div class="game-schools" id="game-filters">
+        <span class="game-tag active" data-filter="all">所有试炼</span>
+        <span class="game-tag" data-filter="智力">🧠 智力试炼</span>
+        <span class="game-tag" data-filter="反应">⚡ 反应试炼</span>
+        <span class="game-tag" data-filter="运气">🍀 运气试炼</span>
+        <span class="game-tag" data-filter="策略">📊 策略试炼</span>
+    </div>
+
+    <!-- 游戏卡片网格 -->
+    <div class="games-grid" id="games-grid">
+        <!-- 游戏1：占卜猜数字 -->
+        <div class="game-card" data-category="智力 运气" data-game="guess">
+            <div class="game-icon">🔮</div>
+            <h2 class="game-title">占卜猜数字</h2>
+            <p class="game-description">法师的水晶球会告诉你一个秘密数字，你需要用意念猜中它。</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot"></span>
+                </div>
+                <div class="game-stats">最高分：7</div>
+            </div>
+            <button class="play-button" onclick="openGame('guess')">进入试炼</button>
+        </div>
+
+        <!-- 游戏2：痛打小恶魔 -->
+        <div class="game-card" data-category="反应" data-game="whack">
+            <div class="game-icon">👹</div>
+            <h2 class="game-title">痛打小恶魔</h2>
+            <p class="game-description">调皮的小恶魔从洞里冒出来，用你的法杖敲打它们！</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                </div>
+                <div class="game-stats">最高分：25</div>
+            </div>
+            <button class="play-button" onclick="openGame('whack')">进入试炼</button>
+        </div>
+
+        <!-- 游戏3：符文记忆 -->
+        <div class="game-card" data-category="智力" data-game="memory">
+            <div class="game-icon">⚡</div>
+            <h2 class="game-title">符文记忆</h2>
+            <p class="game-description">记住闪烁的符文顺序，重现古老的咒语序列。</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot"></span>
+                </div>
+                <div class="game-stats">最高分：8</div>
+            </div>
+            <button class="play-button" onclick="openGame('memory')">进入试炼</button>
+        </div>
+
+        <!-- 游戏4：命运轮盘 -->
+        <div class="game-card" data-category="运气" data-game="roulette">
+            <div class="game-icon">🎡</div>
+            <h2 class="game-title">命运轮盘</h2>
+            <p class="game-description">转动命运之轮，赌上你的运气。赢或输，全在一念之间。</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot"></span>
+                    <span class="difficulty-dot"></span>
+                </div>
+                <div class="game-stats">最高连胜：3</div>
+            </div>
+            <button class="play-button" onclick="openGame('roulette')">进入试炼</button>
+        </div>
+
+        <!-- 游戏5：巫师棋 -->
+        <div class="game-card" data-category="策略" data-game="chess">
+            <div class="game-icon">♟️</div>
+            <h2 class="game-title">迷你巫师棋</h2>
+            <p class="game-description">简化版巫师棋，考验你的战略智慧。</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                </div>
+                <div class="game-stats">最高胜率：60%</div>
+            </div>
+            <a href="nethack.html" class="play-button">进入试炼</a>
+        </div>
+
+        <!-- 游戏6：元素配对 -->
+        <div class="game-card" data-category="智力 反应" data-game="match">
+            <div class="game-icon">🔥</div>
+            <h2 class="game-title">迷宫</h2>
+            <p class="game-description">看看你最快多久走出来。</p>
+            <div class="game-meta">
+                <div class="game-difficulty">
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot filled"></span>
+                    <span class="difficulty-dot"></span>
+                </div>
+                <div class="game-stats">最快：45秒</div>
+            </div>
+            <a href="maze.html" class="play-button">进入试炼</a>
+        </div>
+    </div>
+
+    <!-- 当前激活的游戏区域 -->
+    <div class="active-game-section" id="active-game-section" style="display: none;">
+        <div class="active-game-header">
+            <h2 class="active-game-title" id="active-game-title">🔮 占卜猜数字</h2>
+            <button class="close-game" onclick="closeGame()">✕</button>
+        </div>
+        <div class="game-arena" id="game-arena">
+            <!-- 游戏内容会通过 JavaScript 动态加载 -->
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="hall-footer">
+        <div class="rune-divider">
+            <span>✧</span> <span>⚡</span> <span>✧</span> <span>⚡</span> <span>✧</span>
+        </div>
+        <p>© 第八纪 · 奇迹游戏大厅 · 每次试炼都是一场冒险</p>
+    </footer>
+</div>
+
+<script>
+    // ===== 魔法粒子效果 =====
+    (function initParticles() {
+        const canvas = document.getElementById('magic-particles');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            particles = [];
+            for (let i = 0; i < 50; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 4 + 1,
+                    speedX: (Math.random() - 0.5) * 0.3,
+                    speedY: (Math.random() - 0.5) * 0.3,
+                    color: `rgba(${200 + Math.random() * 55}, ${100 + Math.random() * 100}, 50, ${Math.random() * 0.4 + 0.2})`
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#ff8833';
+                ctx.shadowBlur = 15;
+                ctx.fill();
+
+                p.x += p.speedX;
+                p.y += p.speedY;
+
+                if (p.x < 0 || p.x > width) p.speedX *= -1;
+                if (p.y < 0 || p.y > height) p.speedY *= -1;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+    })();
+
+    // ===== 游戏分类筛选 =====
+    document.querySelectorAll('.game-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            // 更新激活状态
+            document.querySelectorAll('.game-tag').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const filter = this.dataset.filter;
+            const cards = document.querySelectorAll('.game-card');
+
+            cards.forEach(card => {
+                if (filter === 'all' || card.dataset.category.includes(filter)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // ===== 游戏管理 =====
+    let currentGame = null;
+    let gameIntervals = [];
+
+    function clearAllIntervals() {
+        gameIntervals.forEach(interval => clearInterval(interval));
+        gameIntervals = [];
+    }
+
+    function openGame(gameId) {
+        // 关闭当前游戏
+        closeGame();
+
+        // 显示游戏区域
+        document.getElementById('active-game-section').style.display = 'block';
+
+        // 根据游戏ID加载对应游戏
+        switch(gameId) {
+            case 'guess':
+                loadGuessGame();
+                break;
+            case 'whack':
+                loadWhackGame();
+                break;
+            case 'memory':
+                loadMemoryGame();
+                break;
+            case 'roulette':
+                loadRouletteGame();
+                break;
+            case 'chess':
+                loadChessGame();
+                break;
+            case 'match':
+                loadMatchGame();
+                break;
+        }
+
+        // 滚动到游戏区域
+        document.getElementById('active-game-section').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeGame() {
+        document.getElementById('active-game-section').style.display = 'none';
+        document.getElementById('game-arena').innerHTML = '';
+        clearAllIntervals();
+        currentGame = null;
+    }
+
+    // ===== 游戏1：占卜猜数字 =====
+    function loadGuessGame() {
+        document.getElementById('active-game-title').textContent = '🔮 占卜猜数字';
+
+        const secretNumber = Math.floor(Math.random() * 100) + 1;
+        let attempts = 0;
+        let history = [];
+        let gameOver = false;
+
+        const gameHTML = `
+                <div class="guess-game">
+                    <h3 style="font-size:2rem; margin-bottom:20px;">水晶球在低语...</h3>
+                    <p style="color:#dbb06c; margin-bottom:20px;">我心里想了一个1-100之间的数字</p>
+                    <div class="guess-input-area">
+                        <input type="number" id="guess-input" class="guess-input" min="1" max="100" placeholder="??">
+                        <button class="guess-button" onclick="submitGuess()">🔮 占卜</button>
+                    </div>
+                    <div class="guess-hint" id="guess-hint">✨ 输入你的第一个猜测...</div>
+                    <div class="guess-history" id="guess-history"></div>
+                    <button class="guess-button" onclick="resetGuessGame()" style="margin-top:20px;">🔄 重新占卜</button>
+                </div>
+            `;
+
+        document.getElementById('game-arena').innerHTML = gameHTML;
+
+        // 暴露游戏函数到全局
+        window.secretNumber = secretNumber;
+        window.attempts = attempts;
+        window.history = history;
+        window.gameOver = gameOver;
+    }
+
+    window.submitGuess = function() {
+        const input = document.getElementById('guess-input');
+        const hint = document.getElementById('guess-hint');
+        const historyDiv = document.getElementById('guess-history');
+
+        if (!input || !hint || !historyDiv || window.gameOver) return;
+
+        const guess = parseInt(input.value);
+
+        if (isNaN(guess) || guess < 1 || guess > 100) {
+            hint.innerHTML = '❌ 请输入1-100之间的数字！';
+            return;
+        }
+
+        window.attempts++;
+
+        if (guess === window.secretNumber) {
+            hint.innerHTML = `🎉 恭喜！你用了${window.attempts}次就猜对了！魔法水晶认可了你！`;
+            window.gameOver = true;
+        } else if (guess < window.secretNumber) {
+            hint.innerHTML = '⬆️ 数字太小了，再试试更大的...';
+        } else {
+            hint.innerHTML = '⬇️ 数字太大了，再试试更小的...';
+        }
+
+        // 记录历史
+        window.history.push(guess);
+        let historyHTML = '';
+        window.history.forEach((g, i) => {
+            historyHTML += `<span class="history-item">第${i+1}次: ${g}</span>`;
+        });
+        historyDiv.innerHTML = historyHTML;
+
+        input.value = '';
+        input.focus();
+    };
+
+    window.resetGuessGame = function() {
+        window.secretNumber = Math.floor(Math.random() * 100) + 1;
+        window.attempts = 0;
+        window.history = [];
+        window.gameOver = false;
+
+        document.getElementById('guess-hint').innerHTML = '✨ 输入你的第一个猜测...';
+        document.getElementById('guess-history').innerHTML = '';
+        document.getElementById('guess-input').value = '';
+        document.getElementById('guess-input').focus();
+    };
+
+    // ===== 游戏2：痛打小恶魔 =====
+    function loadWhackGame() {
+        document.getElementById('active-game-title').textContent = '👹 痛打小恶魔';
+
+        let score = 0;
+        let timeLeft = 30;
+        let activeHole = null;
+        let gameActive = true;
+
+        const gameHTML = `
+                <div class="whack-game">
+                    <div class="whack-stats">
+                        <span>🎯 得分: <span id="whack-score">0</span></span>
+                        <span>⏳ 时间: <span id="whack-time">30</span>s</span>
+                    </div>
+                    <div class="whack-grid" id="whack-grid">
+                        <div class="whack-hole" data-index="0">👹</div>
+                        <div class="whack-hole" data-index="1">👹</div>
+                        <div class="whack-hole" data-index="2">👹</div>
+                        <div class="whack-hole" data-index="3">👹</div>
+                        <div class="whack-hole" data-index="4">👹</div>
+                        <div class="whack-hole" data-index="5">👹</div>
+                        <div class="whack-hole" data-index="6">👹</div>
+                        <div class="whack-hole" data-index="7">👹</div>
+                        <div class="whack-hole" data-index="8">👹</div>
+                    </div>
+                    <button class="whack-button" onclick="resetWhackGame()">🔄 重新开始</button>
+                </div>
+            `;
+
+        document.getElementById('game-arena').innerHTML = gameHTML;
+
+        // 游戏逻辑
+        const holes = document.querySelectorAll('.whack-hole');
+
+        function showDevil() {
+            if (!gameActive) return;
+
+            // 隐藏当前恶魔
+            if (activeHole !== null) {
+                holes[activeHole].classList.remove('active');
+            }
+
+            // 随机显示新恶魔
+            const newHole = Math.floor(Math.random() * 9);
+            holes[newHole].classList.add('active');
+            activeHole = newHole;
+        }
+
+        function updateTimer() {
+            if (!gameActive) return;
+
+            timeLeft--;
+            document.getElementById('whack-time').textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                gameActive = false;
+                clearInterval(timerInterval);
+                clearInterval(devilInterval);
+
+                // 隐藏恶魔
+                if (activeHole !== null) {
+                    holes[activeHole].classList.remove('active');
+                }
+
+                alert(`⏰ 时间到！你的得分: ${score}`);
+            }
+        }
+
+        // 点击事件
+        holes.forEach(hole => {
+            hole.addEventListener('click', function(e) {
+                if (!gameActive) return;
+
+                if (this.classList.contains('active')) {
+                    score++;
+                    document.getElementById('whack-score').textContent = score;
+                    this.classList.remove('active');
+
+                    // 立即显示新恶魔
+                    if (gameActive) {
+                        setTimeout(() => {
+                            if (gameActive) showDevil();
+                        }, 100);
+                    }
+                }
+            });
+        });
+
+        // 启动游戏
+        const timerInterval = setInterval(updateTimer, 1000);
+        const devilInterval = setInterval(showDevil, 800);
+
+        gameIntervals.push(timerInterval, devilInterval);
+
+        // 保存状态以便重置
+        window.whackState = { score, timeLeft, gameActive };
+    }
+
+    window.resetWhackGame = function() {
+        loadWhackGame();
+    };
+
+    // ===== 游戏3：符文记忆 =====
+    function loadMemoryGame() {
+        document.getElementById('active-game-title').textContent = '⚡ 符文记忆';
+
+        const runes = ['ᚠ', 'ᚢ', 'ᚦ', 'ᚨ', 'ᚱ', 'ᚲ', 'ᚷ', 'ᚹ'];
+        let sequence = [];
+        let playerSequence = [];
+        let level = 1;
+        let gameActive = false;
+
+        const gameHTML = `
+                <div class="memory-game">
+                    <h3 style="margin-bottom:20px;">第 <span id="memory-level">1</span> 级 · 记住符文顺序</h3>
+                    <div class="rune-sequence" id="rune-sequence"></div>
+                    <div class="memory-input-area" id="memory-input-area" style="display:none;">
+                        <input type="text" class="memory-input" id="memory-input" maxlength="1" placeholder="ᚠ">
+                        <button class="guess-button" onclick="submitRune()">⚡ 确认</button>
+                    </div>
+                    <button class="guess-button" onclick="startMemoryGame()" id="memory-start">✨ 开始试炼</button>
+                    <p id="memory-message" style="margin-top:20px; color:#dbb06c;"></p>
+                </div>
+            `;
+
+        document.getElementById('game-arena').innerHTML = gameHTML;
+
+        window.memoryRunes = runes;
+        window.memorySequence = sequence;
+        window.memoryPlayerSequence = playerSequence;
+        window.memoryLevel = level;
+        window.memoryGameActive = gameActive;
+    }
+
+    window.startMemoryGame = function() {
+        window.memorySequence = [];
+        window.memoryPlayerSequence = [];
+        window.memoryLevel = 1;
+        window.memoryGameActive = true;
+
+        document.getElementById('memory-start').style.display = 'none';
+        document.getElementById('memory-input-area').style.display = 'none';
+
+        nextRound();
+    };
+
+    function nextRound() {
+        if (!window.memoryGameActive) return;
+
+        // 添加一个新符文
+        const newRune = window.memoryRunes[Math.floor(Math.random() * window.memoryRunes.length)];
+        window.memorySequence.push(newRune);
+
+        // 显示序列
+        const sequenceDiv = document.getElementById('rune-sequence');
+        sequenceDiv.innerHTML = '';
+
+        let i = 0;
+        function showNextRune() {
+            if (i < window.memorySequence.length) {
+                sequenceDiv.innerHTML = `<span>${window.memorySequence[i]}</span>`;
+                i++;
+                setTimeout(showNextRune, 800);
+            } else {
+                // 显示完毕后清空，等待玩家输入
+                setTimeout(() => {
+                    sequenceDiv.innerHTML = '❓ ❓ ❓';
+                    document.getElementById('memory-input-area').style.display = 'flex';
+                    document.getElementById('memory-input').focus();
+                }, 500);
+            }
+        }
+
+        showNextRune();
+    }
+
+    window.submitRune = function() {
+        const input = document.getElementById('memory-input');
+        const message = document.getElementById('memory-message');
+
+        if (!input || !message || !window.memoryGameActive) return;
+
+        const rune = input.value.trim();
+        if (!rune) return;
+
+        window.memoryPlayerSequence.push(rune);
+
+        // 检查是否正确
+        const currentIndex = window.memoryPlayerSequence.length - 1;
+
+        if (rune !== window.memorySequence[currentIndex]) {
+            message.innerHTML = `❌ 符文错误！你记住了 ${window.memoryLevel-1} 级。重新开始吧。`;
+            window.memoryGameActive = false;
+            document.getElementById('memory-start').style.display = 'inline-block';
+            document.getElementById('memory-input-area').style.display = 'none';
+            return;
+        }
+
+        // 检查是否完成本轮
+        if (window.memoryPlayerSequence.length === window.memorySequence.length) {
+            window.memoryLevel++;
+            document.getElementById('memory-level').textContent = window.memoryLevel;
+            message.innerHTML = `✅ 正确！进入第 ${window.memoryLevel} 级`;
+
+            window.memoryPlayerSequence = [];
+            document.getElementById('memory-input-area').style.display = 'none';
+            document.getElementById('rune-sequence').innerHTML = '';
+
+            setTimeout(nextRound, 1000);
+        }
+
+        input.value = '';
+        input.focus();
+    };
+
+    // ===== 游戏4：命运轮盘 =====
+    function loadRouletteGame() {
+        document.getElementById('active-game-title').textContent = '🎡 命运轮盘';
+
+        let balance = 100;
+        let currentBet = 10;
+        let winStreak = 0;
+
+        const gameHTML = `
+                <div class="guess-game">
+                    <h3 style="margin-bottom:20px;">🎡 命运之轮转动中...</h3>
+                    <p style="font-size:1.5rem; margin-bottom:20px;">金币: <span id="roulette-balance">100</span> 🪙</p>
+                    <p>连胜: <span id="roulette-streak">0</span> 次</p>
+                    <div style="margin:30px 0;">
+                        <p style="margin-bottom:10px;">选择押注:</p>
+                        <button class="guess-button" onclick="betOn('red')">🔴 红色 (2倍)</button>
+                        <button class="guess-button" onclick="betOn('black')">⚫ 黑色 (2倍)</button>
+                        <button class="guess-button" onclick="betOn('green')">🟢 绿色 (10倍)</button>
+                    </div>
+                    <div style="margin:20px 0;">
+                        <p>押注金额: <input type="number" id="bet-amount" value="10" min="1" max="100" style="width:80px; background:#2a1e12; color:#f0dbb0; border:2px solid #b48654; padding:5px;"></p>
+                    </div>
+                    <div id="roulette-result" style="font-size:1.3rem; margin:20px 0; min-height:60px;"></div>
+                    <button class="guess-button" onclick="resetRoulette()">🔄 重新开始</button>
+                </div>
+            `;
+
+        document.getElementById('game-arena').innerHTML = gameHTML;
+
+        window.rouletteBalance = balance;
+        window.rouletteStreak = winStreak;
+    }
+
+    window.betOn = function(color) {
+        const betAmount = parseInt(document.getElementById('bet-amount').value);
+        const resultDiv = document.getElementById('roulette-result');
+
+        if (betAmount > window.rouletteBalance) {
+            resultDiv.innerHTML = '❌ 金币不足！';
+            return;
+        }
+
+        // 模拟轮盘结果
+        const spin = Math.random();
+        let result;
+
+        if (spin < 0.45) { // 45% 红色
+            result = 'red';
+        } else if (spin < 0.9) { // 45% 黑色
+            result = 'black';
+        } else { // 10% 绿色
+            result = 'green';
+        }
+
+        let winAmount = 0;
+        let message = '';
+
+        if (result === color) {
+            switch(color) {
+                case 'red':
+                case 'black':
+                    winAmount = betAmount * 2;
+                    window.rouletteStreak++;
+                    message = `🎉 赢了！获得 ${winAmount} 金币！`;
+                    break;
+                case 'green':
+                    winAmount = betAmount * 10;
+                    window.rouletteStreak = 0; // 绿色不算连胜
+                    message = `🌟 天选之人！获得 ${winAmount} 金币！`;
+                    break;
+            }
+            window.rouletteBalance += winAmount - betAmount;
+        } else {
+            window.rouletteBalance -= betAmount;
+            window.rouletteStreak = 0;
+            message = `😢 输了 ${betAmount} 金币...`;
+        }
+
+        // 更新显示
+        document.getElementById('roulette-balance').textContent = window.rouletteBalance;
+        document.getElementById('roulette-streak').textContent = window.rouletteStreak;
+
+        let resultEmoji = result === 'red' ? '🔴' : (result === 'black' ? '⚫' : '🟢');
+        resultDiv.innerHTML = `${resultEmoji} 轮盘停在 ${result} ${message}`;
+
+        if (window.rouletteBalance <= 0) {
+            resultDiv.innerHTML += '<br>💔 金币耗尽... 重新开始吧！';
+        }
+    };
+
+    window.resetRoulette = function() {
+        window.rouletteBalance = 100;
+        window.rouletteStreak = 0;
+        document.getElementById('roulette-balance').textContent = '100';
+        document.getElementById('roulette-streak').textContent = '0';
+        document.getElementById('roulette-result').innerHTML = '';
+    };
+
+    // ===== 游戏5：迷你巫师棋（简化版）和游戏6：元素配对 =====
+    // 由于篇幅限制，这两个游戏作为占位，你可以后续扩展
+
+    function loadChessGame() {
+        document.getElementById('active-game-title').textContent = '♟️ 迷你巫师棋';
+        document.getElementById('game-arena').innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <p style="font-size:2rem; margin-bottom:20px;">♟️ 巫师棋正在开发中...</p>
+                    <p style="color:#dbb06c;">第八纪的法师们还在研究规则</p>
+                    <button class="guess-button" onclick="closeGame()" style="margin-top:30px;">返回大厅</button>
+                </div>
+            `;
+    }
+
+    function loadMatchGame() {
+        document.getElementById('active-game-title').textContent = '🔥 元素配对';
+        document.getElementById('game-arena').innerHTML = `
+                <div style="text-align:center; padding:50px;">
+                    <p style="font-size:2rem; margin-bottom:20px;">🔥 元素试炼即将开启...</p>
+                    <p style="color:#dbb06c;">符文能量正在汇聚</p>
+                    <button class="guess-button" onclick="closeGame()" style="margin-top:30px;">返回大厅</button>
+                </div>
+            `;
+    }
+</script>
+</body>
+</html>

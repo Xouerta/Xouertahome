@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读卷轴 · Xouerta的藏书阁</title>
+    <!-- 引入 marked.js 解析 Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* ===== 基础风格（复用之前的） ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #1a0f0a;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+        }
+
+        #magic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ===== 阅读容器 ===== */
+        .reading-container {
+            position: relative;
+            z-index: 10;
+            max-width: 900px;
+            margin: 0 auto;
+            background: #d4ba93;
+            background-image:
+                    linear-gradient(165deg, #d0b48a 0%, #e8d0b0 40%, #cfb58b 100%),
+                    repeating-linear-gradient(45deg, rgba(150, 110, 70, 0.1) 0px, rgba(150, 110, 70, 0.1) 2px,
+                    rgba(120, 80, 50, 0.1) 2px, rgba(120, 80, 50, 0.1) 6px);
+            box-shadow: 0 30px 50px #00000080, 0 0 0 2px #b89a7a inset, 0 0 0 6px #7a5a3a inset;
+            border-radius: 30px 30px 15px 15px;
+            padding: 40px;
+        }
+
+        /* 返回链接 */
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #8b5a2e;
+            font-family: 'MedievalSharp', cursive;
+            text-decoration: none;
+            border-bottom: 2px dotted #b48654;
+            padding-bottom: 5px;
+        }
+
+        .back-link:hover {
+            color: #d48d4a;
+            border-bottom: 2px solid #d48d4a;
+        }
+
+        .back-link::before {
+            content: '← ';
+            font-size: 1.2rem;
+        }
+
+        /* ===== 文章内容样式（让 Markdown 渲染后好看） ===== */
+        .post-content {
+            color: #2a1e12;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        /* 标题样式 */
+        .post-content h1 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.5rem;
+            color: #3a281a;
+            border-bottom: 3px double #aa7e5a;
+            padding-bottom: 15px;
+            margin: 30px 0 20px;
+            text-shadow: 2px 2px 0 #b48654;
+        }
+
+        .post-content h2 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2rem;
+            color: #4a3222;
+            border-left: 10px solid #c68642;
+            padding-left: 20px;
+            margin: 25px 0 15px;
+        }
+
+        .post-content h3 {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.5rem;
+            color: #5a3e2a;
+            margin: 20px 0 10px;
+        }
+
+        /* 段落 */
+        .post-content p {
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        /* 引用 */
+        .post-content blockquote {
+            margin: 20px 0;
+            padding: 15px 25px;
+            background: #efddc1;
+            border-left: 8px solid #c68642;
+            border-radius: 0 15px 15px 0;
+            font-style: italic;
+            color: #4a3222;
+            box-shadow: 4px 4px 0 #7a5a3a;
+        }
+
+        .post-content blockquote p {
+            margin-bottom: 0;
+        }
+
+        /* 代码块 */
+        .post-content pre {
+            background: #2a1e12;
+            color: #efddc1;
+            padding: 20px;
+            border-radius: 15px 5px 15px 5px;
+            border: 3px solid #b48654;
+            overflow-x: auto;
+            font-family: 'Special Elite', cursive;
+            margin: 20px 0;
+        }
+
+        .post-content code {
+            font-family: 'Special Elite', cursive;
+            background: #2a1e12;
+            color: #efddc1;
+            padding: 2px 6px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* 列表 */
+        .post-content ul, .post-content ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        .post-content li {
+            margin-bottom: 5px;
+        }
+
+        .post-content li::marker {
+            color: #c68642;
+        }
+
+        /* 表格 */
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #efddc1;
+        }
+
+        .post-content th {
+            background: #7a5a3a;
+            color: #f0dbb0;
+            padding: 10px;
+            font-family: 'MedievalSharp', cursive;
+        }
+
+        .post-content td {
+            padding: 8px;
+            border: 1px solid #b48654;
+        }
+
+        /* 图片 */
+        .post-content img {
+            max-width: 100%;
+            border-radius: 15px 5px 15px 5px;
+            border: 4px solid #cfa86a;
+            box-shadow: 8px 8px 0 #5a3e2a;
+            margin: 20px 0;
+        }
+
+        /* 水平线 */
+        .post-content hr {
+            border: none;
+            border-top: 3px double #aa7e5a;
+            margin: 30px 0;
+        }
+
+        /* 加载状态 */
+        .loading-spell {
+            text-align: center;
+            padding: 80px;
+            font-size: 1.8rem;
+            color: #5a3e2a;
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; text-shadow: 0 0 5px #ffaa33; }
+            50% { opacity: 1; text-shadow: 0 0 20px #ffaa33, 0 0 40px #ff8833; }
+        }
+
+        /* 错误提示 */
+        .error-message {
+            text-align: center;
+            padding: 60px;
+            color: #8b2e2e;
+            font-size: 1.3rem;
+            background: #ffdddd;
+            border: 3px solid #aa5555;
+            border-radius: 30px 5px 30px 5px;
+        }
+
+        /* 页脚符文 */
+        .reading-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #5a3e2a;
+        }
+
+        .rune-divider {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            color: #b48654;
+        }
+    </style>
+</head>
+<body>
+<canvas id="magic-particles"></canvas>
+
+<div class="reading-container">
+    <!-- 返回链接 -->
+    <a href="index.html" class="back-link">返回卷轴长廊</a>
+
+    <!-- 文章内容容器 -->
+    <div id="post-content" class="post-content">
+        <div class="loading-spell">✨ 正在召唤卷轴内容 ...</div>
+    </div>
+
+    <footer class="reading-footer">
+        <div class="rune-divider">
+            <span>✧</span> <span>⚡</span> <span>✧</span> <span>⚡</span> <span>✧</span>
+        </div>
+        <p>Xouerta · 第八纪</p>
+    </footer>
+</div>
+
+<script>
+    // ===== 魔法粒子效果（复用之前的） =====
+    (function initParticles() {
+        const canvas = document.getElementById('magic-particles');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            particles = [];
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.2,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                    color: `rgba(${200 + Math.random() * 55}, ${150 + Math.random() * 105}, 50, ${Math.random() * 0.3 + 0.1})`
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#ffaa33';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+
+                p.x += p.speedX;
+                p.y += p.speedY;
+
+                if (p.x < 0 || p.x > width) p.speedX *= -1;
+                if (p.y < 0 || p.y > height) p.speedY *= -1;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+    })();
+
+    // ===== 加载并渲染 Markdown 文章 =====
+    function loadPost() {
+        const contentDiv = document.getElementById('post-content');
+
+        // 从 URL 获取文章文件名
+        const urlParams = new URLSearchParams(window.location.search);
+        const postFile = urlParams.get('post');
+
+        if (!postFile) {
+            contentDiv.innerHTML = '<div class="error-message">❌ 没有指定要阅读的卷轴</div>';
+            return;
+        }
+
+        // 加载 Markdown 文件
+        fetch(`posts/${postFile}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`卷轴不存在 (${response.status})`);
+                }
+                return response.text();
+            })
+            .then(markdown => {
+                // 配置 marked 选项
+                marked.setOptions({
+                    breaks: true,  // 支持 GitHub 风格的换行
+                    gfm: true,      // 支持 GitHub 风格 Markdown
+                    headerIds: true // 为标题添加 id
+                });
+
+                // 将 Markdown 解析为 HTML
+                const html = marked.parse(markdown);
+
+                // 显示文章内容
+                contentDiv.innerHTML = html;
+
+                // 添加一个隐藏的加载动画移除效果
+                document.querySelector('.loading-spell')?.remove();
+            })
+            .catch(error => {
+                console.error('加载失败:', error);
+                contentDiv.innerHTML = `
+                        <div class="error-message">
+                            ❌ 召唤卷轴失败<br>
+                            <small style="display:block; margin-top:15px;">${error.message}</small>
+                            <a href="index.html" style="display:inline-block; margin-top:20px; color:#8b5a2e;">返回卷轴长廊</a>
+                        </div>
+                    `;
+            });
+    }
+
+    // 页面加载完成后开始加载文章
+    window.addEventListener('load', loadPost);
+</script>
+</body>
+</html>

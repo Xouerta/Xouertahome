@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>30x30 完美连通迷宫 · 修复终点可达</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Courier New', monospace;
+        }
+        body {
+            background: #0f212b;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 16px;
+        }
+        .grandmaster {
+            max-width: 1150px;
+            width: fit-content;
+            background: linear-gradient(165deg, #1b4f5a 0%, #0f3a44 100%);
+            border-radius: 3rem;
+            padding: 2rem 2rem 1.8rem 2rem;
+            box-shadow: 0 25px 40px #000000cc, inset 0 1px 6px #97e2f0;
+            border: 1px solid #409eaf;
+        }
+        .maze-panel {
+            background: #0d2e38;
+            border-radius: 2.8rem;
+            padding: 2rem 1.8rem 1.5rem 1.8rem;
+            box-shadow: inset 0 0 25px #000000cc, 0 15px 25px black;
+        }
+        h2 {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 0 0 0.8rem 0;
+            color: #ddf3f9;
+            text-shadow: 0 3px 4px black;
+            font-weight: 350;
+            letter-spacing: 1px;
+            font-size: 1.8rem;
+        }
+        h2 span {
+            background: #124856;
+            padding: 0.2rem 2rem;
+            border-radius: 40px;
+            font-size: 1.7rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #ffe074;
+            border: 1px solid #63c0d0;
+            box-shadow: inset 0 2px 6px black;
+        }
+        .maze-canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 36px;
+            background: #1b4752;
+            box-shadow: 0 0 0 4px #317e8a, 0 25px 35px black;
+            image-rendering: crisp-edges;
+            width: 100%;
+            height: auto;
+            max-width: 750px;
+            border: 2px solid #6ecfdf;
+        }
+        .seed-lab {
+            margin-top: 1.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem 1.3rem;
+            background: #144d5c;
+            padding: 0.9rem 2.2rem;
+            border-radius: 60px;
+            border: 1px solid #4fb9c9;
+        }
+        .seed-lab label {
+            color: #def4fc;
+            font-size: 1.4rem;
+            font-weight: 500;
+        }
+        .seed-input {
+            background: #042a35;
+            border: 2px solid #3596a8;
+            padding: 0.7rem 1.5rem;
+            border-radius: 3rem;
+            font-size: 1.6rem;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #fadb5e;
+            width: 300px;
+            text-align: center;
+            letter-spacing: 3px;
+            outline: none;
+            box-shadow: inset 0 4px 8px black;
+        }
+        .seed-input:focus {
+            border-color: #f5c542;
+            background: #053b4a;
+        }
+        button {
+            background: #307e8f;
+            border: none;
+            border-radius: 3rem;
+            padding: 0.8rem 2.2rem;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #f0ffff;
+            box-shadow: 0 6px 0 #164e5a, 0 9px 16px black;
+            cursor: pointer;
+            transition: 0.06s linear;
+            border: 1px solid #86deec;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        button:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #0b3943, 0 7px 14px black;
+        }
+        .random-btn {
+            background: #785e45;
+            border-color: #e2b177;
+        }
+        .meta-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 1.4rem 0.3rem 0 0.3rem;
+            color: #d3ecf2;
+        }
+        .status {
+            background: #0f3f4d;
+            padding: 0.6rem 2rem;
+            border-radius: 40px;
+            font-size: 1.25rem;
+            border: 1px solid #45b7ca;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .badge {
+            background: #225e6b;
+            border-radius: 30px;
+            padding: 0.2rem 1.2rem;
+            font-weight: 600;
+            color: #ffe066;
+        }
+        .reset-small {
+            background: #3f6572;
+            padding: 0.5rem 1.8rem;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 0 #234a55;
+        }
+        .legend {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 1rem;
+            color: #d0eef7;
+            flex-wrap: wrap;
+            font-size: 1.1rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .key-dot {
+            width: 22px; height: 22px;
+            background: gold;
+            border-radius: 8px 3px 12px 3px;
+            box-shadow: 0 0 10px gold;
+        }
+        .portal-dot {
+            width: 22px; height: 22px;
+            background: #c56cff;
+            border-radius: 50%;
+            box-shadow: 0 0 14px #c56cff;
+        }
+        .floor-dot {
+            width: 22px; height: 22px;
+            background: #79c9ff;
+            border-radius: 5px 12px 5px 12px;
+        }
+        .goal-dot {
+            width: 22px; height: 22px;
+            background: #f5a97f;
+            border-radius: 4px;
+            box-shadow: 0 0 10px #f5a97f;
+        }
+        .footnote {
+            text-align: center; 
+            color: #c2e9f0; 
+            margin: 0.8rem 0 0 0; 
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+<body>
+<div class="grandmaster">
+    <div class="maze-panel">
+        <h2>
+            🧬 30x30 · 终点可达性修复 
+            <span id="seedDisplay">D6S-EAC-VJV</span>
+        </h2>
+        <canvas id="mazeCanvas" width="600" height="600" class="maze-canvas"></canvas>
+
+        <div class="seed-lab">
+            <label>🌱 种子</label>
+            <input type="text" id="seedInput" class="seed-input" value="D6S-EAC-VJV" maxlength="11">
+            <button id="applyBtn">🌀 生成</button>
+            <button id="randomBtn" class="random-btn">🎲 随机</button>
+        </div>
+
+        <div class="meta-bar">
+            <div class="status" id="gameStatus">
+                <span>🔑 钥匙 <span id="keyCount">0</span>/1</span>
+                <span>🌀 传送待用</span>
+            </div>
+            <button id="resetBtn" class="reset-small">🔄 重置位置</button>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><span class="floor-dot"></span> 起点</div>
+            <div class="legend-item"><span class="goal-dot"></span> 终点(随机位置)</div>
+            <div class="legend-item"><span class="key-dot"></span> 黄金钥匙</div>
+            <div class="legend-item"><span class="portal-dot"></span> 传送门(紫)</div>
+        </div>
+        <div class="footnote">
+            ⚡ 拿钥匙才能进终点 · 终点随机生成但保证可达 · 传送门双向互通
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const SIZE = 30;
+    const CELL_SIZE = 20;
+    const canvas = document.getElementById('mazeCanvas');
+    const ctx = canvas.getContext('2d');
+    const seedInput = document.getElementById('seedInput');
+    const seedDisplay = document.getElementById('seedDisplay');
+    const gameStatus = document.getElementById('gameStatus');
+    const keySpan = document.getElementById('keyCount');
+
+    let maze = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+    const startPos = { row: 1, col: 1 };  // 起点固定为(1,1)
+    let goalPos = { row: SIZE-2, col: SIZE-2 };  // 终点将在生成时随机选择但保证连通
+    let playerPos = { ...startPos };
+    
+    let hasKey = false;
+    let portalA = [2, 2];
+    let portalB = [SIZE-3, SIZE-3];
+
+    let currentSeed = "D6S-EAC-VJV";
+
+    // 种子格式化
+    function formatSeed(p1, p2, p3) {
+        const part1 = p1.toUpperCase().padEnd(3, 'A').slice(0,3);
+        const part2 = p2.toUpperCase().padEnd(3, 'A').slice(0,3);
+        const part3 = p3.toUpperCase().padEnd(3, 'A').slice(0,3);
+        return `${part1}-${part2}-${part3}`;
+    }
+
+    function normalizeSeed(raw) {
+        let cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+        let parts = cleaned.split('-').filter(p => p.length > 0);
+        if (parts.length === 0) return "D6S-EAC-VJV";
+        let segs = ["", "", ""];
+        for (let i = 0; i < Math.min(parts.length, 3); i++) segs[i] = parts[i];
+        return formatSeed(segs[0] || "A", segs[1] || "A", segs[2] || "A");
+    }
+
+    function seedHash(seedStr) {
+        let hash = 0;
+        for (let i = 0; i < seedStr.length; i++) {
+            hash = ((hash << 7) - hash) + seedStr.charCodeAt(i);
+            hash |= 0;
+        }
+        return Math.abs(hash) + 1;
+    }
+
+    function createRNG(seedInt) {
+        let state = seedInt % 2147483647;
+        if (state <= 0) state = 1;
+        return function() {
+            state = (state * 1103515245 + 12345) % 2147483647;
+            return (state & 0x7fffffff) / 2147483647;
+        };
+    }
+
+    // 并查集工具
+    class UnionFind {
+        constructor() {
+            this.parent = new Map();
+        }
+        find(key) {
+            if (!this.parent.has(key)) this.parent.set(key, key);
+            if (this.parent.get(key) !== key) {
+                this.parent.set(key, this.find(this.parent.get(key)));
+            }
+            return this.parent.get(key);
+        }
+        union(key1, key2) {
+            let r1 = this.find(key1);
+            let r2 = this.find(key2);
+            if (r1 !== r2) this.parent.set(r1, r2);
+        }
+        connected(key1, key2) {
+            return this.find(key1) === this.find(key2);
+        }
+    }
+
+    // 生成连通迷宫并返回所有节点坐标列表
+    function generateConnectedMaze(rng) {
+        let mazeGrid = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+        
+        // 初始化所有奇行奇列为路
+        for (let r = 1; r < SIZE-1; r+=2) {
+            for (let c = 1; c < SIZE-1; c+=2) {
+                mazeGrid[r][c] = 1;
+            }
+        }
+
+        // 收集所有可能的墙
+        let edges = [];
+        // 水平墙
+        for (let r = 1; r < SIZE-1; r+=2) {
+            for (let c = 1; c < SIZE-3; c+=2) {
+                edges.push({
+                    wallRow: r,
+                    wallCol: c+1,
+                    a: [r, c],
+                    b: [r, c+2]
+                });
+            }
+        }
+        // 垂直墙
+        for (let r = 1; r < SIZE-3; r+=2) {
+            for (let c = 1; c < SIZE-1; c+=2) {
+                edges.push({
+                    wallRow: r+1,
+                    wallCol: c,
+                    a: [r, c],
+                    b: [r+2, c]
+                });
+            }
+        }
+
+        // 随机打乱边
+        for (let i = edges.length - 1; i > 0; i--) {
+            const j = Math.floor(rng() * (i + 1));
+            [edges[i], edges[j]] = [edges[j], edges[i]];
+        }
+
+        const uf = new UnionFind();
+        
+        // Kruskal: 打通墙
+        for (let e of edges) {
+            const keyA = e.a[0] + ',' + e.a[1];
+            const keyB = e.b[0] + ',' + e.b[1];
+            if (uf.find(keyA) !== uf.find(keyB)) {
+                mazeGrid[e.wallRow][e.wallCol] = 1;
+                uf.union(keyA, keyB);
+            }
+        }
+
+        return { maze: mazeGrid, uf };
+    }
+
+    // 选择终点（确保与起点连通且不是起点本身）
+    function selectGoalPosition(uf, rng) {
+        // 收集所有奇数坐标的节点（路的候选）
+        let candidates = [];
+        for (let r = 1; r < SIZE-1; r+=2) {
+            for (let c = 1; c < SIZE-1; c+=2) {
+                if (r === startPos.row && c === startPos.col) continue; // 排除起点
+                candidates.push([r, c]);
+            }
+        }
+        
+        // 随机打乱
+        for (let i = candidates.length-1; i > 0; i--) {
+            const j = Math.floor(rng() * (i+1));
+            [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+        }
+        
+        const startKey = startPos.row + ',' + startPos.col;
+        
+        // 找到第一个与起点连通的节点作为终点
+        for (let [r, c] of candidates) {
+            const key = r + ',' + c;
+            if (uf.connected(startKey, key)) {
+                return { row: r, col: c };
+            }
+        }
+        
+        // 保底：如果找不到（理论上不会），返回右下角并强制打通
+        console.warn("未找到连通终点，使用默认终点");
+        return { row: SIZE-2, col: SIZE-2 };
+    }
+
+    // 放置特殊物品
+    function placeItems(mazeGrid, uf, rng, goal) {
+        let specialMaze = mazeGrid.map(row => [...row]);
+        
+        // 收集所有可放置点（排除起点和终点）
+        let freeCells = [];
+        for (let r = 1; r < SIZE-1; r++) {
+            for (let c = 1; c < SIZE-1; c++) {
+                if (specialMaze[r][c] === 1 && 
+                    !(r === startPos.row && c === startPos.col) && 
+                    !(r === goal.row && c === goal.col)) {
+                    freeCells.push([r, c]);
+                }
+            }
+        }
+        
+        // 随机打乱
+        for (let i = freeCells.length-1; i > 0; i--) {
+            const j = Math.floor(rng() * (i+1));
+            [freeCells[i], freeCells[j]] = [freeCells[j], freeCells[i]];
+        }
+
+        if (freeCells.length >= 3) {
+            let [kr, kc] = freeCells[0];
+            specialMaze[kr][kc] = 2;   // 钥匙
+            
+            // 确保传送门也连通（它们已经是路，所以没问题）
+            let [ar, ac] = freeCells[1];
+            let [br, bc] = freeCells[2];
+            specialMaze[ar][ac] = 3;
+            specialMaze[br][bc] = 4;
+            portalA = [ar, ac];
+            portalB = [br, bc];
+        } else {
+            // 保底放置（但30x30几乎不可能触发）
+            specialMaze[5][5] = 2;
+            specialMaze[7][7] = 3;
+            specialMaze[9][9] = 4;
+            portalA = [7,7]; portalB = [9,9];
+        }
+        
+        return specialMaze;
+    }
+
+    // 加载迷宫
+    function loadMaze(seedStr) {
+        const normalized = normalizeSeed(seedStr);
+        currentSeed = normalized;
+        seedInput.value = normalized;
+        seedDisplay.innerText = normalized;
+
+        const rng = createRNG(seedHash(normalized));
+        
+        // 1. 生成连通迷宫骨架和并查集
+        const { maze: baseMaze, uf } = generateConnectedMaze(rng);
+        
+        // 2. 选择与起点连通的终点
+        goalPos = selectGoalPosition(uf, rng);
+        
+        // 3. 放置物品（使用新的随机数偏移）
+        const itemRng = createRNG(seedHash(normalized) + 98765);
+        maze = placeItems(baseMaze, uf, itemRng, goalPos);
+        
+        // 确保起点和终点是路
+        maze[startPos.row][startPos.col] = 1;
+        maze[goalPos.row][goalPos.col] = 1;
+
+        // 重置玩家状态
+        playerPos = { ...startPos };
+        hasKey = false;
+        updateKeyDisplay();
+        drawMaze();
+    }
+
+    function updateKeyDisplay() {
+        keySpan.innerText = hasKey ? '1' : '0';
+    }
+
+    function drawMaze() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                const x = c * CELL_SIZE, y = r * CELL_SIZE;
+                
+                if (maze[r][c] === 0) { // 墙
+                    ctx.fillStyle = '#174a55';
+                    ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
+                    ctx.fillStyle = '#0a323c';
+                    ctx.fillRect(x+2, y+2, CELL_SIZE-5, CELL_SIZE-5);
+                } else { // 路（包括特殊物品）
+                    ctx.fillStyle = '#b9afa0';
+                    ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
+                    ctx.fillStyle = '#9d8f7a';
+                    ctx.fillRect(x+2, y+2, CELL_SIZE-5, CELL_SIZE-5);
+
+                    if (maze[r][c] === 2) { // 钥匙
+                        ctx.fillStyle = '#f5c542';
+                        ctx.shadowBlur = 12;
+                        ctx.shadowColor = '#d4a017';
+                        ctx.beginPath();
+                        ctx.arc(x+CELL_SIZE/2, y+CELL_SIZE/2, 7, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#00000099';
+                        ctx.font = 'bold 14px monospace';
+                        ctx.fillText('🗝️', x+4, y+16);
+                        ctx.shadowBlur = 0;
+                    } else if (maze[r][c] === 3) { // 传送门A
+                        ctx.fillStyle = '#c56cff';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#c56cff';
+                        ctx.beginPath();
+                        ctx.ellipse(x+10, y+10, 6, 8, 0, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px sans-serif';
+                        ctx.fillText('⏺️', x+3, y+16);
+                        ctx.shadowBlur = 0;
+                    } else if (maze[r][c] === 4) { // 传送门B
+                        ctx.fillStyle = '#b85eff';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#b85eff';
+                        ctx.beginPath();
+                        ctx.ellipse(x+10, y+10, 6, 8, 0, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#fff';
+                        ctx.font = 'bold 14px sans-serif';
+                        ctx.fillText('⏹️', x+3, y+16);
+                        ctx.shadowBlur = 0;
+                    }
+                }
+                
+                ctx.strokeStyle = '#2d7d89';
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+            }
+        }
+
+        // 绘制终点
+        const gx = goalPos.col * CELL_SIZE, gy = goalPos.row * CELL_SIZE;
+        ctx.fillStyle = hasKey ? '#f5a97f' : '#aa7c6f';
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = hasKey ? '#f28500' : '#7a4d3b';
+        ctx.fillRect(gx+2, gy+2, CELL_SIZE-5, CELL_SIZE-5);
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillStyle = hasKey ? '#ffd966' : '#bc8f8f';
+        ctx.fillText('🏁', gx+4, gy+17);
+        ctx.shadowBlur = 0;
+
+        // 绘制起点标记（小蓝点）
+        const sx = startPos.col * CELL_SIZE, sy = startPos.row * CELL_SIZE;
+        ctx.fillStyle = '#79c9ff';
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(sx+10, sy+10, 4, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+
+        // 玩家
+        const px = playerPos.col * CELL_SIZE, py = playerPos.row * CELL_SIZE;
+        ctx.fillStyle = '#3bc0db';
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = '#1f8a9c';
+        ctx.beginPath();
+        ctx.arc(px+10, py+10, 8, 0, 2*Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillText('👤', px+3, py+17);
+        ctx.shadowBlur = 0;
+
+        // 更新状态文字
+        if (playerPos.row === goalPos.row && playerPos.col === goalPos.col) {
+            if (hasKey) gameStatus.innerHTML = `<span>🏆 胜利！抵达终点</span>`;
+            else gameStatus.innerHTML = `<span>🔒 终点锁住，需要钥匙！</span>`;
+        } else {
+            gameStatus.innerHTML = `<span>🔑 钥匙 ${hasKey ? 1 : 0}/1 &nbsp; 🌀 传送待用</span>`;
+        }
+    }
+
+    function movePlayer(dr, dc) {
+        let nr = playerPos.row + dr;
+        let nc = playerPos.col + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) return;
+        if (maze[nr][nc] === 0) return;
+
+        if (maze[nr][nc] === 2) {
+            hasKey = true;
+            maze[nr][nc] = 1;
+            updateKeyDisplay();
+        }
+
+        if (maze[nr][nc] === 3) {
+            playerPos.row = portalB[0];
+            playerPos.col = portalB[1];
+            drawMaze();
+            return;
+        } else if (maze[nr][nc] === 4) {
+            playerPos.row = portalA[0];
+            playerPos.col = portalA[1];
+            drawMaze();
+            return;
+        }
+
+        playerPos.row = nr;
+        playerPos.col = nc;
+
+        if (playerPos.row === goalPos.row && playerPos.col === goalPos.col && !hasKey) {
+            playerPos.row -= dr;
+            playerPos.col -= dc;
+            gameStatus.innerHTML = '<span>🚫 需要黄金钥匙！</span>';
+            drawMaze();
+            return;
+        }
+
+        drawMaze();
+    }
+
+    function onKeydown(e) {
+        const key = e.key;
+        if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) return;
+        e.preventDefault();
+
+        if (playerPos.row === goalPos.row && playerPos.col === goalPos.col && hasKey) return;
+
+        if (key === 'ArrowUp') movePlayer(-1, 0);
+        else if (key === 'ArrowDown') movePlayer(1, 0);
+        else if (key === 'ArrowLeft') movePlayer(0, -1);
+        else if (key === 'ArrowRight') movePlayer(0, 1);
+    }
+
+    window.addEventListener('keydown', onKeydown);
+
+    function resetPlayer() {
+        playerPos = { ...startPos };
+        hasKey = false;
+        updateKeyDisplay();
+        drawMaze();
+    }
+
+    document.getElementById('applyBtn').addEventListener('click', () => {
+        loadMaze(seedInput.value.trim());
+    });
+    
+    document.getElementById('randomBtn').addEventListener('click', () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        function randPart() {
+            let p = '';
+            for (let i = 0; i < 3; i++) p += chars[Math.floor(Math.random() * chars.length)];
+            return p;
+        }
+        const newSeed = `${randPart()}-${randPart()}-${randPart()}`;
+        loadMaze(newSeed);
+    });
+    
+    document.getElementById('resetBtn').addEventListener('click', resetPlayer);
+    seedInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('applyBtn').click(); });
+
+    // 初始化
+    loadMaze('D6S-EAC-VJV');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>同盟印记 · 艾德温的旅者之盟</title>
+    <style>
+        /* ===== 基础风格 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #1a0f0a;
+            background-image:
+                    radial-gradient(circle at 10% 20%, #3a281a66 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, #2a4a3a66 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 魔法粒子画布 */
+        #magic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ===== 主容器 ===== */
+        .alliance-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #2a1e12;
+            background-image:
+                    radial-gradient(circle at 20% 30%, #3a5a3a33 0%, transparent 50%),
+                    repeating-linear-gradient(45deg, #2a3a2a22 0px, #2a3a2a22 4px, #1a2a1a22 4px, #1a2a1a22 8px);
+            box-shadow: 0 30px 60px #000000cc, 0 0 0 3px #7a9a6a inset, 0 0 0 8px #3a5a3a inset;
+            border-radius: 40px 40px 20px 20px;
+            padding: 30px;
+            border: 1px solid #8ab57a;
+        }
+
+        /* ===== 页眉 ===== */
+        .alliance-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .alliance-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 4rem;
+            color: #d0f0c0;
+            text-shadow:
+                    4px 4px 0 #5a8a4a,
+                    8px 8px 0 #2a5a2a,
+                    0 0 30px #aaff88,
+                    0 0 60px #44aa44;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            animation: titlePulse 4s infinite alternate;
+        }
+
+        @keyframes titlePulse {
+            0% { text-shadow: 4px 4px 0 #5a8a4a, 8px 8px 0 #2a5a2a, 0 0 30px #aaff88, 0 0 60px #44aa44; }
+            100% { text-shadow: 4px 4px 0 #7aae6a, 10px 10px 0 #3a6a3a, 0 0 50px #ccffaa, 0 0 90px #66cc66; }
+        }
+
+        .alliance-subtitle {
+            font-size: 1.5rem;
+            color: #aad09a;
+            font-style: italic;
+            background: #1a2a1aaa;
+            display: inline-block;
+            padding: 10px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(3px);
+            border: 2px solid #7a9a6a;
+            box-shadow: 0 6px 0 #2a5a2a;
+        }
+
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 10px;
+            color: #7a9a6a;
+            font-size: 1.1rem;
+        }
+
+        .breadcrumb a {
+            color: #aad09a;
+            text-decoration: none;
+            border-bottom: 1px dashed #7a9a6a;
+        }
+
+        .breadcrumb a:hover {
+            color: #ccffaa;
+            border-bottom: 1px solid #aaff88;
+        }
+
+        /* ===== 契约宣言 ===== */
+        .pact-declaration {
+            background: #1a2a1a;
+            border: 4px double #7a9a6a;
+            border-radius: 60px 10px 60px 10px;
+            padding: 30px;
+            margin: 30px 0 50px;
+            text-align: center;
+            box-shadow: 0 0 30px #5a8a4a66;
+            position: relative;
+        }
+
+        .pact-declaration::before,
+        .pact-declaration::after {
+            content: '✦';
+            position: absolute;
+            font-size: 2rem;
+            color: #7a9a6a;
+        }
+
+        .pact-declaration::before {
+            top: -15px;
+            left: 30px;
+        }
+
+        .pact-declaration::after {
+            bottom: -15px;
+            right: 30px;
+        }
+
+        .pact-text {
+            font-size: 1.3rem;
+            color: #c0e0b0;
+            line-height: 1.8;
+            font-style: italic;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pact-signature {
+            margin-top: 20px;
+            font-family: 'Special Elite', cursive;
+            color: #aad09a;
+            font-size: 1.2rem;
+        }
+
+        /* ===== 友链分类 ===== */
+        .alliance-schools {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0 40px;
+        }
+
+        .school-tag {
+            font-family: 'MedievalSharp', cursive;
+            padding: 10px 30px;
+            background: #2a3a2a;
+            color: #aad09a;
+            border: 2px solid #5a8a4a;
+            border-radius: 40px 5px 40px 5px;
+            box-shadow: 4px 4px 0 #1a2a1a, 0 0 15px #88cc8866;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .school-tag:hover,
+        .school-tag.active {
+            background: #3a5a3a;
+            color: #f0ffe0;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 6px 6px 0 #1a2a1a, 0 0 30px #aaff88, 0 0 60px #66cc66;
+            border-color: #aaff88;
+        }
+
+        .school-tag.active::before {
+            content: '⚡';
+            margin-right: 8px;
+        }
+
+        /* ===== 友链网格 ===== */
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        /* 友链卡片 - 魔法徽章风格 */
+        .link-card {
+            background: #2a3a2a;
+            background: linear-gradient(145deg, #3a5a3a, #1a2a1a);
+            border: 3px solid #5a8a4a;
+            border-radius: 30px 5px 30px 5px;
+            padding: 25px 20px;
+            box-shadow: 8px 8px 0 #1a2a1a, 0 0 0 2px #8ab57a inset;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: block;
+        }
+
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, #aaff8822 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .link-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 12px 12px 0 #1a2a1a, 0 0 30px #aaff88, 0 0 0 3px #aaff88 inset;
+            border-color: #aaff88;
+        }
+
+        .link-card:hover::before {
+            opacity: 1;
+            animation: portalSwirl 6s linear infinite;
+        }
+
+        @keyframes portalSwirl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 友链头部 */
+        .link-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .link-avatar {
+            width: 60px;
+            height: 60px;
+            background: #3a5a3a;
+            border-radius: 50%;
+            border: 3px solid #7a9a6a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 0 15px #88cc88;
+        }
+
+        .link-info {
+            flex: 1;
+        }
+
+        .link-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.4rem;
+            color: #e0f0d0;
+            margin-bottom: 4px;
+        }
+
+        .link-desc {
+            color: #aad09a;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* 友链元信息 */
+        .link-meta {
+            display: flex;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px dashed #5a8a4a;
+            border-bottom: 1px dashed #5a8a4a;
+            color: #aad09a;
+            font-size: 0.9rem;
+        }
+
+        .link-category {
+            background: #2a5a2a;
+            padding: 2px 10px;
+            border-radius: 30px;
+            color: #e0f0d0;
+            font-family: 'Special Elite', cursive;
+        }
+
+        .link-rating::before {
+            content: '✦';
+            margin-right: 4px;
+            color: #ffd966;
+        }
+
+        /* 友链标签 */
+        .link-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .link-tag {
+            background: #1a3a1a;
+            color: #aad09a;
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            border: 1px solid #5a8a4a;
+        }
+
+        /* 访问按钮 */
+        .visit-link {
+            display: inline-block;
+            width: 100%;
+            padding: 8px;
+            background: #2a5a2a;
+            color: #e0f0d0;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1rem;
+            border: 2px solid #5a8a4a;
+            border-radius: 30px 5px 30px 5px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .visit-link:hover {
+            background: #3a7a3a;
+            border-color: #aaff88;
+            box-shadow: 0 0 20px #88cc88;
+        }
+
+        .visit-link::after {
+            content: ' →';
+            font-size: 1.1rem;
+        }
+
+        /* ===== 友链统计 ===== */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: #1a2a1a;
+            border: 3px solid #5a8a4a;
+            border-radius: 30px 5px 30px 5px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2.5rem;
+            color: #c0e0b0;
+            text-shadow: 2px 2px 0 #2a5a2a;
+        }
+
+        .stat-label {
+            color: #aad09a;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        /* ===== 加入指引 ===== */
+        .join-guide {
+            margin: 50px 0 30px;
+            padding: 30px;
+            background: #1a2a1a;
+            border: 4px solid #5a8a4a;
+            border-radius: 60px 10px 60px 10px;
+            text-align: center;
+        }
+
+        .join-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 2rem;
+            color: #c0e0b0;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0 #2a5a2a;
+        }
+
+        .join-text {
+            color: #aad09a;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .join-contact {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 10px 30px;
+            background: #2a5a2a;
+            color: #e0f0d0;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.2rem;
+            border: 3px solid #5a8a4a;
+            border-radius: 50px 5px 50px 5px;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .join-contact:hover {
+            background: #3a7a3a;
+            border-color: #aaff88;
+            box-shadow: 0 0 30px #88cc88;
+            transform: scale(1.05);
+        }
+
+        /* ===== 页脚 ===== */
+        .alliance-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #7a9a6a;
+        }
+
+        .rune-divider {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            color: #aad09a;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .alliance-title {
+                font-size: 2.8rem;
+            }
+
+            .links-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<canvas id="magic-particles"></canvas>
+
+<div class="alliance-container">
+    <!-- 页眉 -->
+    <header class="alliance-header">
+        <h1 class="alliance-title">🤝 同盟印记</h1>
+        <div class="alliance-subtitle">旅者之盟 · 第八纪</div>
+        <div class="breadcrumb">
+            <a href="../index.html">🏠 旅者大厅</a> ✦
+            <a href="../blog/index.html">📖 知识卷轴</a> ✦
+            <a href="../games/index.html">🎮 奇迹游戏</a> ✦
+            <a href="../projects/index.html">🔧 魔力工坊</a> ✦
+            <span>🤝 同盟印记</span>
+        </div>
+    </header>
+
+    <!-- 契约宣言 -->
+    <div class="pact-declaration">
+        <div class="pact-text">
+            "我，艾德温·影歌，在此立下旅者之盟。凡在此留下印记者，皆为吾之盟友。愿知识共享，技艺互鉴，在异世界的旅途中相互照应。"
+        </div>
+        <div class="pact-signature">—— 第八纪 · 星辉月 · 于迷雾森林</div>
+    </div>
+
+    <!-- 友链分类 -->
+    <div class="alliance-schools" id="link-filters">
+        <span class="school-tag active" data-category="all">所有盟友</span>
+        <span class="school-tag" data-category="法师塔">🏰 法师塔</span>
+        <span class="school-tag" data-category="工匠坊">🔨 工匠坊</span>
+        <span class="school-tag" data-category="旅者驿站">🍃 旅者驿站</span>
+        <span class="school-tag" data-category="藏书阁">📚 藏书阁</span>
+        <span class="school-tag" data-category="冒险团">⚔️ 冒险团</span>
+    </div>
+
+    <!-- 友链网格 -->
+    <div class="links-grid" id="links-grid">
+        <!-- 会通过 JavaScript 动态生成 -->
+        <div class="loading-spell" style="grid-column:1/-1; text-align:center; padding:50px; color:#aad09a;">✨ 正在召唤盟友 ...</div>
+    </div>
+
+    <!-- 友链统计 -->
+    <div class="stats-section">
+        <div class="stat-card">
+            <div class="stat-number" id="total-allies">0</div>
+            <div class="stat-label">总盟友数</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="active-allies">0</div>
+            <div class="stat-label">活跃盟友</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="pending-allies">0</div>
+            <div class="stat-label">待结盟</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="alliance-years">8</div>
+            <div class="stat-label">契约纪元</div>
+        </div>
+    </div>
+
+    <!-- 加入指引（替代表单） -->
+    <div class="join-guide">
+        <h2 class="join-title">✧ 如何加入同盟 ✧</h2>
+        <p class="join-text">
+            若你也想在此留下印记，请通过以下方式联系我。我会在收到消息后尽快将你加入盟友名录。
+        </p>
+        <div style="margin: 20px 0; color: #aad09a; font-size: 1.1rem;">
+            <p>📧 渡鸦传书：wizard.elwyn@example.com</p>
+            <p>🐦 魔法信使：@elwyn_wizard</p>
+        </div>
+        <a href="mailto:wizard.elwyn@example.com" class="join-contact">✍️ 发送结盟请求</a>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="alliance-footer">
+        <div class="rune-divider">
+            <span>✧</span> <span>⚡</span> <span>✧</span> <span>⚡</span> <span>✧</span>
+        </div>
+        <p>© 第八纪 · 同盟印记 · 独行快，众行远</p>
+    </footer>
+</div>
+
+<script>
+    // ===== 魔法粒子效果 =====
+    (function initParticles() {
+        const canvas = document.getElementById('magic-particles');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 4 + 1,
+                    speedX: (Math.random() - 0.5) * 0.2,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                    color: `rgba(${100 + Math.random() * 100}, ${150 + Math.random() * 105}, 50, ${Math.random() * 0.3 + 0.2})`
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#88cc88';
+                ctx.shadowBlur = 12;
+                ctx.fill();
+
+                p.x += p.speedX;
+                p.y += p.speedY;
+
+                if (p.x < 0 || p.x > width) p.speedX *= -1;
+                if (p.y < 0 || p.y > height) p.speedY *= -1;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+    })();
+
+    // ===== 友链数据 =====
+    const linksData = [
+        {
+            name: '灰袍的笔记',
+            description: '一位游历四方的法师，记录各地魔法见闻。',
+            icon: '🧙',
+            category: '法师塔',
+            url: 'https://gandalf.github.io',
+            tags: ['魔法', '旅行', '精灵语'],
+            rating: 5,
+            status: 'active'
+        },
+        {
+            name: '铁砧与符文',
+            description: '矮人工匠的锻造心得，从武器到魔法器具。',
+            icon: '⚒️',
+            category: '工匠坊',
+            url: 'https://dwarf-forge.github.io',
+            tags: ['锻造', '符文', '矿石'],
+            rating: 4,
+            status: 'active'
+        },
+        {
+            name: '孤山驿站',
+            description: '旅行者的聚集地，分享各地风土人情。',
+            icon: '🍃',
+            category: '旅者驿站',
+            url: 'https://wanderers-inn.github.io',
+            tags: ['旅行', '美食', '故事'],
+            rating: 5,
+            status: 'active'
+        },
+        {
+            name: '上古图书馆',
+            description: '收集失传的典籍和古老的知识。',
+            icon: '📚',
+            category: '藏书阁',
+            url: 'https://ancient-library.github.io',
+            tags: ['古籍', '历史', '神话'],
+            rating: 5,
+            status: 'active'
+        },
+        {
+            name: '银月冒险团',
+            description: '一个活跃的冒险者团队，分享攻略和任务。',
+            icon: '⚔️',
+            category: '冒险团',
+            url: 'https://silvermoon.github.io',
+            tags: ['攻略', '组队', '任务'],
+            rating: 4,
+            status: 'active'
+        },
+        {
+            name: '元素议会',
+            description: '研究四大元素的法师团体。',
+            icon: '🔥',
+            category: '法师塔',
+            url: 'https://elemental-council.github.io',
+            tags: ['元素', '咒语', '理论'],
+            rating: 4,
+            status: 'active'
+        },
+        {
+            name: '风车磨坊',
+            description: '一个安静的独立博客，记录生活和思考。',
+            icon: '🌾',
+            category: '旅者驿站',
+            url: 'https://windmill.github.io',
+            tags: ['生活', '随笔', '诗歌'],
+            rating: 3,
+            status: 'pending'
+        },
+        {
+            name: '龙语者',
+            description: '研究龙族语言和文化的学者。',
+            icon: '🐉',
+            category: '藏书阁',
+            url: 'https://dragon-speaker.github.io',
+            tags: ['龙族', '语言', '文化'],
+            rating: 5,
+            status: 'active'
+        },
+        {
+            name: '炼金工坊',
+            description: '分享炼金配方和材料研究。',
+            icon: '⚗️',
+            category: '工匠坊',
+            url: 'https://alchemy-lab.github.io',
+            tags: ['炼金', '药剂', '材料'],
+            rating: 4,
+            status: 'active'
+        },
+        {
+            name: '北地冒险团',
+            description: '专注于极地探险的团队。',
+            icon: '❄️',
+            category: '冒险团',
+            url: 'https://north-expedition.github.io',
+            tags: ['极地', '生存', '探险'],
+            rating: 4,
+            status: 'pending'
+        }
+    ];
+
+    // ===== 更新统计 =====
+    function updateStats() {
+        const total = linksData.length;
+        const active = linksData.filter(l => l.status === 'active').length;
+        const pending = linksData.filter(l => l.status === 'pending').length;
+
+        document.getElementById('total-allies').textContent = total;
+        document.getElementById('active-allies').textContent = active;
+        document.getElementById('pending-allies').textContent = pending;
+    }
+
+    // ===== 渲染友链 =====
+    function renderLinks(category = 'all') {
+        const grid = document.getElementById('links-grid');
+
+        // 筛选友链
+        const filtered = category === 'all'
+            ? linksData
+            : linksData.filter(link => link.category === category);
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="no-projects" style="grid-column:1/-1; text-align:center; padding:50px; color:#aad09a;">📭 这个派系还没有盟友...</div>';
+            return;
+        }
+
+        // 生成 HTML
+        let html = '';
+
+        filtered.forEach(link => {
+            // 生成标签
+            const tagsHtml = link.tags.map(tag =>
+                `<span class="link-tag">${tag}</span>`
+            ).join('');
+
+            // 生成星星
+            const stars = '✦'.repeat(link.rating) + '✧'.repeat(5 - link.rating);
+
+            html += `
+                    <a href="${link.url}" target="_blank" class="link-card" data-category="${link.category}">
+                        <div class="link-header">
+                            <div class="link-avatar">${link.icon}</div>
+                            <div class="link-info">
+                                <div class="link-title">${link.name}</div>
+                                <div class="link-desc">${link.description}</div>
+                            </div>
+                        </div>
+
+                        <div class="link-meta">
+                            <span class="link-category">${link.category}</span>
+                            <span class="link-rating">${stars}</span>
+                        </div>
+
+                        <div class="link-tags">
+                            ${tagsHtml}
+                        </div>
+
+                        <span class="visit-link">前往拜访</span>
+                    </a>
+                `;
+        });
+
+        // 模拟加载延迟
+        setTimeout(() => {
+            grid.innerHTML = html;
+        }, 500);
+    }
+
+    // ===== 分类筛选 =====
+    function setupFilters() {
+        const filters = document.querySelectorAll('.school-tag');
+
+        filters.forEach(filter => {
+            filter.addEventListener('click', function() {
+                // 更新激活状态
+                filters.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+
+                // 重新渲染友链
+                const category = this.dataset.category;
+                renderLinks(category);
+            });
+        });
+    }
+
+    // ===== 初始化 =====
+    window.addEventListener('load', () => {
+        setupFilters();
+        renderLinks('all');
+        updateStats();
+    });
+</script>
+</body>
+</html>

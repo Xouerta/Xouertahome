@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetHack·成长AI·动态追逐 | 地下城</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', 'Courier New', monospace; }
+        body {
+            background: #0f1a20; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 12px;
+            margin: 0;
+        }
+        .game-wrapper {
+            max-width: 1600px; width: fit-content; background: linear-gradient(165deg, #1d4853 0%, #12343e 100%);
+            border-radius: 2.5rem; padding: 1.8rem; box-shadow: 0 30px 45px #000000dd, inset 0 1px 6px #a3e9f5;
+        }
+        .main-panel {
+            background: #102f3a; border-radius: 2.2rem; padding: 1.5rem; box-shadow: inset 0 0 25px #000000cc;
+            display: flex; gap: 1.5rem;
+        }
+        .game-area {
+            flex: 2;
+        }
+        .log-area {
+            flex: 1;
+            background: #0b2a33;
+            border-radius: 2rem;
+            padding: 1.2rem;
+            color: #c5edf5;
+            border: 2px solid #35828f;
+            display: flex;
+            flex-direction: column;
+            max-width: 350px;
+        }
+        .log-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #ffd966;
+            text-align: center;
+            border-bottom: 2px solid #4a9eaa;
+            padding-bottom: 0.5rem;
+        }
+        .log-content {
+            overflow-y: auto;
+            max-height: 600px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            padding-right: 0.5rem;
+        }
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.3rem 0.5rem;
+            background: #124854;
+            border-radius: 1rem;
+            border-left: 4px solid #5fb3c4;
+        }
+        .log-entry.fight { border-left-color: #e74c3c; }
+        .log-entry.item { border-left-color: #f1c40f; }
+        .log-entry.event { border-left-color: #9b59b6; }
+        .log-entry.stairs { border-left-color: #f39c12; }
+        .log-entry.ai { border-left-color: #3498db; }
+        .header {
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; color: #dcf5fc;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .seed-area {
+            display: flex; align-items: center; gap: 10px; background: #104551; padding: 0.3rem 1.5rem; border-radius: 3rem;
+        }
+        .seed-area input {
+            background: #052c36; border: 2px solid #359fb3; padding: 0.4rem 1.2rem; border-radius: 3rem; font-size: 1.4rem;
+            font-family: monospace; font-weight: bold; color: #fad855; width: 250px; text-align: center; letter-spacing: 2px;
+            outline: none;
+        }
+        .seed-area input:focus { border-color: #f5c542; background: #074452; }
+        button {
+            background: #2d7e91; border: none; border-radius: 2.5rem; padding: 0.5rem 1.6rem; font-size: 1.2rem; font-weight: 600;
+            color: #f0ffff; box-shadow: 0 4px 0 #154d59, 0 6px 12px black; cursor: pointer; transition: 0.05s; border: 1px solid #7fdae9;
+        }
+        button:active { transform: translateY(4px); box-shadow: 0 1px 0 #0b3843, 0 5px 10px black; }
+        .random-btn { background: #785e45; border-color: #e2b177; }
+        canvas {
+            display: block; margin: 0 auto; border-radius: 36px; background: #1b3b44; box-shadow: 0 0 0 4px #35828f, 0 25px 30px black;
+            image-rendering: crisp-edges; width: 100%; height: auto; max-width: 750px; border: 2px solid #62bfd1;
+        }
+        .stats-bar {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; background: #124854; margin: 1.2rem 0 0.5rem;
+            padding: 0.8rem 2rem; border-radius: 4rem; color: white; gap: 20px;
+        }
+        .hp-bar { background: #4f2e2e; padding: 0.3rem 1.5rem; border-radius: 3rem; display: flex; align-items: center; gap: 12px; }
+        .hp-fill { color: #ff9f8f; font-weight: bold; font-size: 1.4rem; }
+        .attr { display: flex; gap: 20px; }
+        .attr span { background: #1a5b68; padding: 0.3rem 1.3rem; border-radius: 3rem; font-weight: 600; }
+        .monster-count { background: #3f2f4b; padding: 0.3rem 1.5rem; border-radius: 3rem; }
+        .level-info { background: #2a5f4b; padding: 0.3rem 1.5rem; border-radius: 3rem; font-weight: bold; }
+        .legend {
+            display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center; color: #c5edf5; margin: 0.7rem 0 0.3rem;
+            font-size: 1rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .sword-dot { width: 18px; height: 18px; background: #b0c4de; border-radius: 2px 8px 2px 8px; box-shadow: 0 0 8px white; }
+        .shield-dot { width: 18px; height: 18px; background: #a9a9a9; border-radius: 10px 3px 10px 3px; box-shadow: 0 0 8px #cdcdcd; }
+        .potion-dot { width: 18px; height: 18px; background: #ff6b6b; border-radius: 50%; box-shadow: 0 0 10px red; }
+        .event-dot { width: 18px; height: 18px; background: #9b59b6; border-radius: 50% 20% 50% 20%; box-shadow: 0 0 10px #c77dff; }
+        .monster-dot { width: 18px; height: 18px; background: #a1652c; clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%); }
+        .big-monster-dot { width: 20px; height: 20px; background: #b04545; clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%); }
+        .boss-dot { width: 24px; height: 24px; background: #8b0000; clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%); box-shadow: 0 0 15px red; }
+        .stairs-dot { width: 18px; height: 18px; background: gold; border-radius: 4px; box-shadow: 0 0 10px orange; }
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: #1f4a58; padding: 2rem; border-radius: 3rem; max-width: 550px; width: 90%;
+            border: 3px solid #c79b2b; color: white; box-shadow: 0 20px 30px black;
+        }
+        .modal h3 { font-size: 2.2rem; margin: 0 0 1rem; color: #ffd966; text-align: center; }
+        .modal p { font-size: 1.2rem; margin: 0.5rem 0; }
+        .modal .stat-row { display: flex; justify-content: space-between; padding: 0.3rem 1rem; background: #0f3a45; border-radius: 2rem; margin: 0.5rem 0; }
+        .modal-buttons { display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; }
+        .modal-btn { background: #307e8f; border: none; border-radius: 3rem; padding: 0.8rem 2rem; font-size: 1.2rem; color: white; cursor: pointer; border: 1px solid #7fdae9; }
+        .modal-btn:hover { background: #3a95a8; }
+        .total-score { font-size: 2rem; font-weight: bold; color: #ffd966; text-align: center; margin: 1rem 0; }
+        #confirmModal .modal-buttons { display: flex; gap: 1rem; justify-content: center; }
+    </style>
+</head>
+<body>
+    <!-- 随机事件弹窗 -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content" id="eventModalContent">
+            <h3 id="eventTitle">❓ 随机事件</h3>
+            <p id="eventDesc">你遇到了一件神秘的事情...</p>
+            <div class="modal-buttons" id="eventButtons"></div>
+        </div>
+    </div>
+
+    <!-- 下楼确认弹窗 -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3>⚠️ 确认下楼</h3>
+            <p id="confirmMessage">确定要前往下一层吗？</p>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="confirmYes">是</button>
+                <button class="modal-btn negative" id="confirmNo">否</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结算弹窗 -->
+    <div id="gameOverModal" class="modal">
+        <div class="modal-content">
+            <h3 id="resultTitle">🏆 游戏结束</h3>
+            <div id="scoreDetails">
+                <div class="stat-row"><span>📊 基础分数</span> <span id="baseScore">0</span></div>
+                <div class="stat-row"><span>⚔️ 杀敌数 (小怪×10)</span> <span id="smallKills">0</span></div>
+                <div class="stat-row"><span>👾 杀敌数 (大怪×25)</span> <span id="bigKills">0</span></div>
+                <div class="stat-row"><span>👑 Boss击杀×500</span> <span id="bossKill">0</span></div>
+                <div class="stat-row"><span>🗡️ 攻击力 ×5</span> <span id="atkScore">0</span></div>
+                <div class="stat-row"><span>🛡️ 防御力 ×5</span> <span id="defScore">0</span></div>
+                <div class="stat-row"><span>❤️ 剩余生命 ×10</span> <span id="hpScore">0</span></div>
+                <div class="stat-row"><span>📦 拾取道具 ×20</span> <span id="itemScore">0</span></div>
+                <div class="stat-row"><span>👣 步数 (越少越好) </span> <span id="stepScore">0</span></div>
+                <div class="stat-row"><span>🎲 随机事件 ×15</span> <span id="eventScore">0</span></div>
+                <div class="stat-row"><span>🏆 到达层数 ×100</span> <span id="levelScore">0</span></div>
+                <div class="total-score" id="totalScore">总分: 0</div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="closeGameOverModal()">继续</button>
+            </div>
+        </div>
+    </div>
+
+<div class="game-wrapper">
+    <div class="main-panel">
+        <div class="game-area">
+            <div class="header">
+                <div style="font-size: 1.8rem;">⚔️ 地下城·成长AI</div>
+                <div class="seed-area">
+                    <input type="text" id="seedInput" value="AI-GROW-5LVL" maxlength="15">
+                    <button id="applySeed">🌀 生成</button>
+                    <button id="randomSeed" class="random-btn">🎲 随机</button>
+                </div>
+            </div>
+
+            <canvas id="gameCanvas" width="1000" height="1000"></canvas>
+
+            <div class="stats-bar">
+                <div class="hp-bar">❤️ 生命 <span id="hpDisplay" class="hp-fill">5</span></div>
+                <div class="attr">
+                    <span>⚔️ 攻 <span id="atkDisplay">1</span></span>
+                    <span>🛡️ 防 <span id="defDisplay">1</span></span>
+                </div>
+                <div class="level-info">🏰 层数 <span id="levelDisplay">1</span>/5</div>
+                <div class="monster-count">👾 怪物 <span id="monsterCount">0</span>/15</div>
+                <button id="resetGame">🔄 重置本层</button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><span style="font-size:1.4rem;">🗡️</span> 剑(+1攻)</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🛡️</span> 盾(+1防)</div>
+                <div class="legend-item"><span style="font-size:1.4rem;">🧴</span> 血药(+1HP)</div>
+                <div class="legend-item"><span class="event-dot">❓</span> 随机事件</div>
+                <div class="legend-item"><span class="monster-dot"></span> 小怪物</div>
+                <div class="legend-item"><span class="big-monster-dot"></span> 大怪物</div>
+                <div class="legend-item"><span class="boss-dot"></span> Boss</div>
+                <div class="legend-item"><span class="stairs-dot"></span> 楼梯(下一层)</div>
+            </div>
+        </div>
+        
+        <!-- 日志栏 -->
+        <div class="log-area">
+            <div class="log-header">📜 战斗日志</div>
+            <div class="log-content" id="logContent">
+                <div class="log-entry">🎮 游戏开始</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const SIZE = 40;
+    const CELL_SIZE = 25;
+    const TOTAL_LEVELS = 5;
+    
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const seedInput = document.getElementById('seedInput');
+    const hpSpan = document.getElementById('hpDisplay');
+    const atkSpan = document.getElementById('atkDisplay');
+    const defSpan = document.getElementById('defDisplay');
+    const monsterCountSpan = document.getElementById('monsterCount');
+    const levelSpan = document.getElementById('levelDisplay');
+    const logContent = document.getElementById('logContent');
+    
+    const eventModal = document.getElementById('eventModal');
+    const confirmModal = document.getElementById('confirmModal');
+    const gameOverModal = document.getElementById('gameOverModal');
+    const modalTitle = document.getElementById('eventTitle');
+    const modalDesc = document.getElementById('eventDesc');
+    const modalButtons = document.getElementById('eventButtons');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmYes = document.getElementById('confirmYes');
+    const confirmNo = document.getElementById('confirmNo');
+
+    let currentLevel = 1;
+    let pendingStairs = false;
+    
+    let stats = {
+        smallKills: 0,
+        bigKills: 0,
+        bossKilled: false,
+        itemsCollected: 0,
+        eventsTriggered: 0,
+        steps: 0,
+        startTime: Date.now()
+    };
+
+    let maze = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+    
+    let player = {
+        row: 1, col: 1,
+        hp: 5, maxHp: 5,
+        atk: 1,
+        def: 1
+    };
+    
+    let stairsPos = { row: SIZE-2, col: SIZE-2 };
+    
+    let monsters = [];
+    const MAX_MONSTERS = 15;
+    
+    let currentSeed = "AI-GROW-5LVL";
+    let rng = Math.random;
+    
+    let gameOver = false;
+    let gameWin = false;
+    let waitingForEvent = false;
+
+    // 日志函数
+    function addLog(message, type = 'normal') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry ' + type;
+        entry.textContent = message;
+        logContent.appendChild(entry);
+        logContent.scrollTop = logContent.scrollHeight;
+        if (logContent.children.length > 50) {
+            logContent.removeChild(logContent.children[0]);
+        }
+    }
+
+    window.closeGameOverModal = function() {
+        gameOverModal.style.display = 'none';
+    };
+
+    function showGameOverModal(isVictory) {
+        const resultTitle = document.getElementById('resultTitle');
+        resultTitle.innerText = isVictory ? '🏆 胜利！你击败了Boss！' : '💔 勇者倒下了';
+        
+        const baseScore = 100;
+        const smallKillScore = stats.smallKills * 10;
+        const bigKillScore = stats.bigKills * 25;
+        const bossScore = stats.bossKilled ? 500 : 0;
+        const atkScore = player.atk * 5;
+        const defScore = player.def * 5;
+        const hpScore = Math.max(0, player.hp) * 10;
+        const itemScore = stats.itemsCollected * 20;
+        const stepScore = Math.max(0, 300 - stats.steps);
+        const eventScore = stats.eventsTriggered * 15;
+        const levelScore = currentLevel * 100;
+        
+        const totalScore = baseScore + smallKillScore + bigKillScore + bossScore + 
+                          atkScore + defScore + hpScore + itemScore + stepScore + 
+                          eventScore + levelScore;
+        
+        document.getElementById('baseScore').innerText = baseScore;
+        document.getElementById('smallKills').innerText = stats.smallKills + ' ×10 = ' + smallKillScore;
+        document.getElementById('bigKills').innerText = stats.bigKills + ' ×25 = ' + bigKillScore;
+        document.getElementById('bossKill').innerText = stats.bossKilled ? '✓ +500' : '✗ 0';
+        document.getElementById('atkScore').innerText = player.atk + ' ×5 = ' + atkScore;
+        document.getElementById('defScore').innerText = player.def + ' ×5 = ' + defScore;
+        document.getElementById('hpScore').innerText = player.hp + ' ×10 = ' + hpScore;
+        document.getElementById('itemScore').innerText = stats.itemsCollected + ' ×20 = ' + itemScore;
+        document.getElementById('stepScore').innerText = stats.steps + ' (300-' + stats.steps + '=' + stepScore + ')';
+        document.getElementById('eventScore').innerText = stats.eventsTriggered + ' ×15 = ' + eventScore;
+        document.getElementById('levelScore').innerText = currentLevel + ' ×100 = ' + levelScore;
+        document.getElementById('totalScore').innerText = '总分: ' + totalScore;
+        
+        gameOverModal.style.display = 'flex';
+    }
+
+    function formatSeed(p1, p2, p3) {
+        return p1.toUpperCase().padEnd(4,'A').slice(0,4) + '-' + 
+               p2.toUpperCase().padEnd(4,'A').slice(0,4) + '-' + 
+               p3.toUpperCase().padEnd(4,'A').slice(0,4);
+    }
+    
+    function normalizeSeed(raw) {
+        let cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+        let parts = cleaned.split('-').filter(p => p.length > 0);
+        if (parts.length === 0) return "AI-GROW-5LVL";
+        let segs = ["", "", ""];
+        for (let i=0; i<Math.min(parts.length,3); i++) segs[i] = parts[i];
+        return formatSeed(segs[0] || "A", segs[1] || "A", segs[2] || "A");
+    }
+    
+    function seedHash(seedStr) {
+        let h = 0;
+        for (let i=0; i<seedStr.length; i++) h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
+        return Math.abs(h) + 1;
+    }
+    
+    function createRNG(seedInt) {
+        let state = seedInt % 2147483647;
+        if (state <= 0) state = 1;
+        return function() {
+            state = (state * 1103515245 + 12345) % 2147483647;
+            return (state & 0x7fffffff) / 2147483647;
+        };
+    }
+
+    // 计算怪物战力 (攻击+防御+血量/2 作为简单战力评估)
+    function getMonsterPower(monster) {
+        return monster.atk + monster.def + Math.floor(monster.hp / 2);
+    }
+    
+    // 计算玩家战力
+    function getPlayerPower() {
+        return player.atk + player.def + Math.floor(player.hp / 2);
+    }
+
+    // 生成怪物（属性随层数增长，但控制在合理范围）
+    function spawnLevelMonsters(level, grid, rngFunc) {
+        let mobs = [];
+        let freeCells = [];
+        for (let r=1; r<SIZE-1; r++) {
+            for (let c=1; c<SIZE-1; c++) {
+                if (grid[r][c] === 1 && !(r===1 && c===1) && !(r===stairsPos.row && c===stairsPos.col))
+                    freeCells.push([r,c]);
+            }
+        }
+        for (let i=freeCells.length-1; i>0; i--) {
+            const j = Math.floor(rngFunc() * (i+1));
+            [freeCells[i], freeCells[j]] = [freeCells[j], freeCells[i]];
+        }
+        
+        let monsterCount;
+        if (level === TOTAL_LEVELS) {
+            monsterCount = 0;
+        } else {
+            monsterCount = 5 + level * 2 + Math.floor(rngFunc() * 4);
+        }
+        monsterCount = Math.min(monsterCount, MAX_MONSTERS);
+        
+        for (let i=0; i<monsterCount && i<freeCells.length; i++) {
+            let [r,c] = freeCells[i];
+            let isBig = rngFunc() < (0.2 + level * 0.1);
+            
+            // 属性随层数增长，但限制范围
+            let baseAtk, baseDef, baseHp;
+            if (isBig) {
+                baseAtk = 2 + level + Math.floor(rngFunc() * 3);
+                baseDef = 3 + level + Math.floor(rngFunc() * 2);
+                baseHp = 5 + level * 2 + Math.floor(rngFunc() * 4);
+                // 限制上限
+                baseAtk = Math.min(baseAtk, 14);
+                baseDef = Math.min(baseDef, 14);
+                baseHp = Math.min(baseHp, 15);
+            } else {
+                baseAtk = 1 + Math.floor(level * 0.8) + Math.floor(rngFunc() * 2);
+                baseDef = 1 + Math.floor(level * 0.8) + Math.floor(rngFunc() * 2);
+                baseHp = 2 + level + Math.floor(rngFunc() * 3);
+                // 限制上限
+                baseAtk = Math.min(baseAtk, 9);
+                baseDef = Math.min(baseDef, 9);
+                baseHp = Math.min(baseHp, 10);
+            }
+            
+            mobs.push({
+                row: r, col: c,
+                type: isBig ? 'big' : 'small',
+                atk: baseAtk,
+                def: baseDef,
+                hp: baseHp,
+                maxHp: baseHp,
+                id: i,
+                lastMove: 0
+            });
+        }
+        
+        if (level === TOTAL_LEVELS && freeCells.length > 0) {
+            let [r,c] = freeCells[0];
+            // Boss属性随层数增强，但更强大
+            let bossAtk = 10 + level * 2 + Math.floor(rngFunc() * 4);
+            let bossDef = 8 + level * 2 + Math.floor(rngFunc() * 3);
+            let bossHp = 40 + level * 8 + Math.floor(rngFunc() * 15);
+            mobs.push({
+                row: r, col: c,
+                type: 'boss',
+                atk: Math.min(bossAtk, 25),
+                def: Math.min(bossDef, 20),
+                hp: Math.min(bossHp, 80),
+                maxHp: Math.min(bossHp, 80),
+                id: 'boss'
+            });
+        }
+        
+        return mobs;
+    }
+
+    // 智能怪物移动
+    function moveMonsters() {
+        if (gameWin || gameOver || waitingForEvent) return;
+        
+        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+        let newMonsters = [];
+        const playerPower = getPlayerPower();
+        
+        for (let m of monsters) {
+            if (m.type === 'boss') {
+                // Boss始终追逐玩家
+                let bestDir = null;
+                let bestDist = 999;
+                
+                for (let [dr, dc] of dirs) {
+                    let nr = m.row + dr;
+                    let nc = m.col + dc;
+                    if (nr < 1 || nr >= SIZE-1 || nc < 1 || nc >= SIZE-1) continue;
+                    if (maze[nr][nc] !== 1) continue;
+                    let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
+                    if (occupied) continue;
+                    if (nr === stairsPos.row && nc === stairsPos.col) continue;
+                    
+                    let dist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        bestDir = [dr, dc];
+                    }
+                }
+                
+                if (bestDir) {
+                    m.row += bestDir[0];
+                    m.col += bestDir[1];
+                    addLog(`👑 Boss向你靠近`, 'ai');
+                }
+                newMonsters.push(m);
+                continue;
+            }
+            
+            // 计算与玩家的距离
+            let dist = Math.abs(m.row - player.row) + Math.abs(m.col - player.col);
+            let monsterPower = getMonsterPower(m);
+            
+            // 如果在两格内
+            if (dist <= 2) {
+                if (monsterPower > playerPower) {
+                    // 怪物更强，追逐玩家
+                    let bestDir = null;
+                    let bestDist = 999;
+                    
+                    for (let [dr, dc] of dirs) {
+                        let nr = m.row + dr;
+                        let nc = m.col + dc;
+                        if (nr < 1 || nr >= SIZE-1 || nc < 1 || nc >= SIZE-1) continue;
+                        if (maze[nr][nc] !== 1) continue;
+                        let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
+                        if (occupied) continue;
+                        if (nr === stairsPos.row && nc === stairsPos.col) continue;
+                        
+                        let newDist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
+                        if (newDist < bestDist) {
+                            bestDist = newDist;
+                            bestDir = [dr, dc];
+                        }
+                    }
+                    
+                    if (bestDir) {
+                        m.row += bestDir[0];
+                        m.col += bestDir[1];
+                        addLog(`👾 ${m.type === 'big' ? '大怪' : '小怪'}觉得比你强，追过来了`, 'ai');
+                    }
+                } else if (monsterPower < playerPower) {
+                    // 玩家更强，怪物逃跑
+                    let bestDir = null;
+                    let bestDist = -1;
+                    
+                    for (let [dr, dc] of dirs) {
+                        let nr = m.row + dr;
+                        let nc = m.col + dc;
+                        if (nr < 1 || nr >= SIZE-1 || nc < 1 || nc >= SIZE-1) continue;
+                        if (maze[nr][nc] !== 1) continue;
+                        let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
+                        if (occupied) continue;
+                        if (nr === stairsPos.row && nc === stairsPos.col) continue;
+                        
+                        let newDist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
+                        if (newDist > bestDist) {
+                            bestDist = newDist;
+                            bestDir = [dr, dc];
+                        }
+                    }
+                    
+                    if (bestDir) {
+                        m.row += bestDir[0];
+                        m.col += bestDir[1];
+                        addLog(`🏃 ${m.type === 'big' ? '大怪' : '小怪'}觉得打不过你，逃跑了`, 'ai');
+                    }
+                } else {
+                    // 势均力敌，随机移动
+                    let moved = false;
+                    let tries = 0;
+                    while (!moved && tries < 8) {
+                        let [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+                        let nr = m.row + dr, nc = m.col + dc;
+                        tries++;
+                        if (nr < 1 || nr >= SIZE-1 || nc < 1 || nc >= SIZE-1) continue;
+                        if (maze[nr][nc] !== 1) continue;
+                        let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
+                        if (occupied) continue;
+                        if (nr === stairsPos.row && nc === stairsPos.col) continue;
+                        
+                        m.row = nr; m.col = nc;
+                        moved = true;
+                    }
+                }
+            } else {
+                // 两格外，随机移动
+                let moved = false;
+                let tries = 0;
+                while (!moved && tries < 8) {
+                    let [dr, dc] = dirs[Math.floor(Math.random() * dirs.length)];
+                    let nr = m.row + dr, nc = m.col + dc;
+                    tries++;
+                    if (nr < 1 || nr >= SIZE-1 || nc < 1 || nc >= SIZE-1) continue;
+                    if (maze[nr][nc] !== 1) continue;
+                    let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
+                    if (occupied) continue;
+                    if (nr === stairsPos.row && nc === stairsPos.col) continue;
+                    
+                    m.row = nr; m.col = nc;
+                    moved = true;
+                }
+            }
+            newMonsters.push(m);
+        }
+        monsters = newMonsters;
+        
+        // 检查玩家是否被怪物撞上
+        let monsterIdx = monsters.findIndex(m => m.row === player.row && m.col === player.col);
+        if (monsterIdx !== -1) {
+            fightMonster(monsterIdx);
+        }
+        
+        draw();
+    }
+
+    // 其余函数保持不变（generateDungeonLevel, placeLevelItems, loadLevel, fightMonster等）
+    // 为节省篇幅，这里省略了之前已有的函数，实际运行时需要包含完整代码
+    
+    // 为了代码完整，这里重新包含必要的函数
+    function generateDungeonLevel(level, rngFunc) {
+        let grid = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
+        
+        for (let r=1; r<SIZE-1; r+=2) {
+            for (let c=1; c<SIZE-1; c+=2) {
+                grid[r][c] = 1;
+            }
+        }
+        
+        let edges = [];
+        for (let r=1; r<SIZE-1; r+=2) {
+            for (let c=1; c<SIZE-3; c+=2) {
+                edges.push({ wallRow: r, wallCol: c+1, a: [r,c], b: [r,c+2] });
+            }
+        }
+        for (let r=1; r<SIZE-3; r+=2) {
+            for (let c=1; c<SIZE-1; c+=2) {
+                edges.push({ wallRow: r+1, wallCol: c, a: [r,c], b: [r+2,c] });
+            }
+        }
+        
+        for (let i=edges.length-1; i>0; i--) {
+            const j = Math.floor(rngFunc() * (i+1));
+            [edges[i], edges[j]] = [edges[j], edges[i]];
+        }
+        
+        const parent = new Map();
+        function find(k) {
+            if (!parent.has(k)) parent.set(k, k);
+            if (parent.get(k) !== k) parent.set(k, find(parent.get(k)));
+            return parent.get(k);
+        }
+        function union(a,b) { parent.set(find(a), find(b)); }
+        
+        for (let e of edges) {
+            let ka = e.a[0]+','+e.a[1];
+            let kb = e.b[0]+','+e.b[1];
+            if (find(ka) !== find(kb)) {
+                grid[e.wallRow][e.wallCol] = 1;
+                union(ka, kb);
+            }
+        }
+        
+        const numSmallRooms = 6 + Math.floor(rngFunc() * 8);
+        for (let i=0; i<numSmallRooms; i++) {
+            let w = 3 + Math.floor(rngFunc() * 4);
+            let h = 3 + Math.floor(rngFunc() * 4);
+            let x = 2 + Math.floor(rngFunc() * (SIZE - w - 4));
+            let y = 2 + Math.floor(rngFunc() * (SIZE - h - 4));
+            
+            for (let ry = y; ry < y+h; ry++) {
+                for (let rx = x; rx < x+w; rx++) {
+                    if (ry > 0 && ry < SIZE-1 && rx > 0 && rx < SIZE-1) {
+                        grid[ry][rx] = 1;
+                    }
+                }
+            }
+            
+            for (let tries=0; tries<4; tries++) {
+                let doorX = x + Math.floor(rngFunc() * w);
+                let doorY = y + Math.floor(rngFunc() * h);
+                let dir = Math.floor(rngFunc() * 4);
+                if (dir === 0 && doorY > 2) grid[doorY-1][doorX] = 1;
+                if (dir === 1 && doorY < SIZE-2) grid[doorY+1][doorX] = 1;
+                if (dir === 2 && doorX > 2) grid[doorY][doorX-1] = 1;
+                if (dir === 3 && doorX < SIZE-2) grid[doorY][doorX+1] = 1;
+            }
+        }
+        
+        if (level === TOTAL_LEVELS) {
+            for (let y = 8; y < SIZE-8; y++) {
+                for (let x = 8; x < SIZE-8; x++) {
+                    grid[y][x] = 1;
+                }
+            }
+            for (let y = 12; y < SIZE-12; y += 5) {
+                for (let x = 12; x < SIZE-12; x += 5) {
+                    if (Math.abs(y - x) < 8 || Math.abs(y + x - SIZE) < 8) {
+                        grid[y][x] = 0;
+                        if (y+1 < SIZE-1) grid[y+1][x] = 0;
+                        if (x+1 < SIZE-1) grid[y][x+1] = 0;
+                    }
+                }
+            }
+        }
+        
+        for (let i=0; i<SIZE; i++) {
+            grid[0][i] = 0;
+            grid[SIZE-1][i] = 0;
+            grid[i][0] = 0;
+            grid[i][SIZE-1] = 0;
+        }
+        
+        return grid;
+    }
+
+    function placeLevelItems(level, grid, rngFunc) {
+        let newGrid = grid.map(row => [...row]);
+        let free = [];
+        for (let r=1; r<SIZE-1; r++) {
+            for (let c=1; c<SIZE-1; c++) {
+                if (newGrid[r][c] === 1) free.push([r,c]);
+            }
+        }
+        for (let i=free.length-1; i>0; i--) {
+            const j = Math.floor(rngFunc() * (i+1));
+            [free[i], free[j]] = [free[j], free[i]];
+        }
+        
+        const itemCount = 3 + level + Math.floor(rngFunc() * 4);
+        for (let i=0; i<itemCount && i<free.length; i++) {
+            let type = Math.floor(rngFunc() * 3) + 2;
+            newGrid[free[i][0]][free[i][1]] = type;
+        }
+        
+        const eventCount = 2 + Math.floor(rngFunc() * 4);
+        for (let i=0; i<eventCount && i+itemCount < free.length; i++) {
+            let [r,c] = free[i+itemCount];
+            newGrid[r][c] = 6;
+        }
+        
+        let stairsPlaced = false;
+        for (let i=itemCount+eventCount; i<free.length && !stairsPlaced; i++) {
+            let [r,c] = free[i];
+            if (!(r === 1 && c === 1)) {
+                newGrid[r][c] = 7;
+                stairsPos = { row: r, col: c };
+                stairsPlaced = true;
+            }
+        }
+        
+        return newGrid;
+    }
+
+    function loadLevel(level) {
+        const levelRng = createRNG(seedHash(currentSeed) + level * 1000);
+        
+        let levelGrid = generateDungeonLevel(level, levelRng);
+        
+        const itemRng = createRNG(seedHash(currentSeed) + level * 1000 + 500);
+        levelGrid = placeLevelItems(level, levelGrid, itemRng);
+        
+        const monsterRng = createRNG(seedHash(currentSeed) + level * 1000 + 800);
+        monsters = spawnLevelMonsters(level, levelGrid, monsterRng);
+        
+        maze = levelGrid;
+        
+        player.row = 1;
+        player.col = 1;
+        maze[1][1] = 1;
+        
+        levelSpan.innerText = level + '/' + TOTAL_LEVELS;
+        updateStats();
+        draw();
+        addLog(`🏰 进入第 ${level} 层`, 'stairs');
+    }
+
+    function nextLevel() {
+        if (currentLevel < TOTAL_LEVELS) {
+            currentLevel++;
+            loadLevel(currentLevel);
+        } else {
+            gameWin = true;
+            showGameOverModal(true);
+        }
+    }
+
+    function tryGoDown() {
+        if (currentLevel === TOTAL_LEVELS) {
+            addLog("⚠️ 最后一层，无法下楼！必须击败Boss！", 'stairs');
+            return;
+        }
+        if (monsters.some(m => m.type === 'boss')) {
+            addLog("⚠️ Boss还在，无法下楼！", 'stairs');
+            return;
+        }
+        confirmMessage.innerText = `确定要前往第 ${currentLevel + 1} 层吗？`;
+        confirmModal.style.display = 'flex';
+        pendingStairs = true;
+    }
+
+    confirmYes.onclick = function() {
+        confirmModal.style.display = 'none';
+        if (pendingStairs) {
+            nextLevel();
+            pendingStairs = false;
+        }
+    };
+
+    confirmNo.onclick = function() {
+        confirmModal.style.display = 'none';
+        pendingStairs = false;
+        addLog("🚫 取消下楼", 'stairs');
+    };
+
+    function loadWorld(seedStr) {
+        currentSeed = normalizeSeed(seedStr);
+        seedInput.value = currentSeed;
+        
+        currentLevel = 1;
+        player = { row: 1, col: 1, hp: 5, maxHp: 5, atk: 1, def: 1 };
+        
+        stats = {
+            smallKills: 0,
+            bigKills: 0,
+            bossKilled: false,
+            itemsCollected: 0,
+            eventsTriggered: 0,
+            steps: 0,
+            startTime: Date.now()
+        };
+        
+        gameWin = false;
+        gameOver = false;
+        waitingForEvent = false;
+        
+        logContent.innerHTML = '<div class="log-entry">🎮 游戏开始</div>';
+        
+        loadLevel(1);
+    }
+
+    // 事件库（略，同之前版本）
+    const events = [
+        {
+            title: "💀 幽灵的考验",
+            desc: "一个幽灵挡住了去路，它说：'回答我，你选择力量还是生命？'",
+            options: [
+                { text: "⚔️ 接受力量 (-1生命, +2攻击)", effect: (p,m) => { p.hp -= 1; p.atk += 2; addLog("💀 接受了力量，生命-1，攻击+2", 'event'); } },
+                { text: "🛡️ 祈求守护 (-1生命, +2防御)", effect: (p,m) => { p.hp -= 1; p.def += 2; addLog("💀 祈求守护，生命-1，防御+2", 'event'); } },
+                { text: "🍎 献上食物 (恢复2生命)", effect: (p,m) => { p.hp = Math.min(p.maxHp, p.hp + 2); addLog("🍎 献上食物，生命+2", 'event'); } }
+            ]
+        },
+        {
+            title: "🕳️ 陷阱房间",
+            desc: "你踩到了机关！周围怪物被惊动了...",
+            options: [
+                { text: "🏃 快速逃离 (不改变)", effect: (p,m) => { addLog("🏃 快速逃离，什么都没发生", 'event'); } },
+                { text: "💪 摧毁陷阱 (+1攻, 但召唤1只大怪)", effect: (p,m) => { 
+                    p.atk++; 
+                    m.push({ row: p.row, col: p.col, type:'big', atk:3, def:3, hp:5, id:Date.now() }); 
+                    addLog("💪 摧毁陷阱，攻击+1，但召唤了一只大怪", 'event');
+                } },
+                { text: "🔮 封印陷阱 (+1防, 随机清除一只小怪)", effect: (p,m) => { 
+                    p.def++; 
+                    const smallMonsters = m.filter(mon => mon.type === 'small');
+                    if (smallMonsters.length > 0) {
+                        const idx = m.findIndex(mon => mon.type === 'small');
+                        if (idx !== -1) {
+                            m.splice(idx, 1);
+                            addLog("🔮 封印陷阱，防御+1，并清除了一只小怪", 'event');
+                        }
+                    } else {
+                        addLog("🔮 封印陷阱，防御+1，但没有小怪可清除", 'event');
+                    }
+                } }
+            ]
+        },
+        {
+            title: "🧪 神秘泉水",
+            desc: "你发现一汪发光的泉水，喝下它会有什么效果？",
+            options: [
+                { text: "💙 喝一大口 (随机属性+1, 但可能中毒)", effect: (p,m) => { 
+                    if(Math.random()<0.5) { p.atk++; addLog("💙 攻击+1", 'event'); } 
+                    else { p.def++; addLog("💙 防御+1", 'event'); }
+                    if(Math.random()<0.3) { p.hp = Math.max(1, p.hp-2); addLog("😵 中毒了，生命-2", 'event'); }
+                } },
+                { text: "🧴 装瓶带走 (获得1瓶血药)", effect: (p,m) => { p.hp = Math.min(p.maxHp, p.hp+1); addLog("🧴 获得1瓶血药，生命+1", 'event'); } },
+                { text: "🚶 无视它", effect: (p,m) => { addLog("🚶 无视泉水", 'event'); } }
+            ]
+        },
+        {
+            title: "📜 古代石碑",
+            desc: "石碑上刻着古老的文字：'献祭生命换取力量，或者献祭力量换取生命'",
+            options: [
+                { text: "🩸 献祭2生命 +2攻击", effect: (p,m) => { if(p.hp>2) { p.hp-=2; p.atk+=2; addLog("🩸 献祭2生命，攻击+2", 'event'); } } },
+                { text: "⚡ 献祭1攻击 +2生命", effect: (p,m) => { if(p.atk>1) { p.atk--; p.maxHp+=2; p.hp+=2; addLog("⚡ 献祭1攻击，生命上限+2，生命+2", 'event'); } } },
+                { text: "🚫 离开", effect: (p,m) => { addLog("🚫 离开石碑", 'event'); } }
+            ]
+        },
+        {
+            title: "👥 流浪商人",
+            desc: "一个神秘商人出现：'我可以帮你，但需要代价...'",
+            options: [
+                { text: "🗡️ 买剑 (1攻击, 但花费2生命)", effect: (p,m) => { if(p.hp>2) { p.hp-=2; p.atk++; addLog("🗡️ 购买剑，攻击+1，生命-2", 'event'); } } },
+                { text: "🛡️ 买盾 (1防御, 但花费2生命)", effect: (p,m) => { if(p.hp>2) { p.hp-=2; p.def++; addLog("🛡️ 购买盾，防御+1，生命-2", 'event'); } } },
+                { text: "💰 贿赂 (随机消失一只小怪)", effect: (p,m) => { 
+                    const smallMonsters = m.filter(mon => mon.type === 'small');
+                    if (smallMonsters.length > 0) {
+                        const idx = m.findIndex(mon => mon.type === 'small');
+                        if (idx !== -1) {
+                            m.splice(idx, 1);
+                            addLog("💰 贿赂成功，一只小怪消失了", 'event');
+                        }
+                    } else {
+                        addLog("💰 没有小怪可贿赂", 'event');
+                    }
+                } }
+            ]
+        },
+        {
+            title: "🏺 古代神龛",
+            desc: "一个古老的神龛，散发着神秘的光芒...",
+            options: [
+                { text: "🙏 祈祷 (50%几率全属性+1, 50%召唤怪物)", effect: (p,m) => { 
+                    if(Math.random()<0.5) { 
+                        p.atk++; p.def++; p.maxHp++; p.hp++; 
+                        addLog("🙏 祈祷应验！全属性+1", 'event');
+                    } else { 
+                        m.push({ row: p.row, col: p.col, type:'big', atk:4, def:4, hp:8, id:Date.now() }); 
+                        addLog("🙏 祈祷招来了灾祸！一只大怪出现", 'event');
+                    }
+                } },
+                { text: "💰 献祭 (失去2生命, 获得1攻击1防御)", effect: (p,m) => { p.hp = Math.max(1, p.hp-2); p.atk++; p.def++; addLog("💰 献祭2生命，获得1攻击1防御", 'event'); } },
+                { text: "🚶 离开", effect: (p,m) => { addLog("🚶 离开神龛", 'event'); } }
+            ]
+        }
+    ];
+
+    function triggerRandomEvent() {
+        if (waitingForEvent) return;
+        waitingForEvent = true;
+        stats.eventsTriggered++;
+        
+        const evt = events[Math.floor(Math.random() * events.length)];
+        modalTitle.innerText = evt.title;
+        modalDesc.innerText = evt.desc;
+        
+        modalButtons.innerHTML = '';
+        evt.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'modal-btn' + (idx === 0 ? '' : ' negative');
+            btn.innerText = opt.text;
+            btn.onclick = function() {
+                opt.effect(player, monsters);
+                if (player.hp <= 0) {
+                    player.hp = 0;
+                    gameOver = true;
+                    showGameOverModal(false);
+                }
+                if (monsters.length > MAX_MONSTERS) monsters = monsters.slice(0, MAX_MONSTERS);
+                
+                updateStats();
+                draw();
+                eventModal.style.display = 'none';
+                waitingForEvent = false;
+            };
+            modalButtons.appendChild(btn);
+        });
+        
+        eventModal.style.display = 'flex';
+    }
+
+    function updateStats() {
+        hpSpan.innerText = player.hp + '/' + player.maxHp;
+        atkSpan.innerText = player.atk;
+        defSpan.innerText = player.def;
+        monsterCountSpan.innerText = monsters.length;
+    }
+
+    function fightMonster(monsterIdx) {
+        let m = monsters[monsterIdx];
+        let playerDamage = Math.max(1, player.atk - m.def + (Math.random() < 0.2 ? 1 : 0));
+        let oldHp = m.hp;
+        m.hp -= playerDamage;
+        
+        let monsterName = m.type === 'boss' ? 'Boss' : (m.type === 'big' ? '大怪' : '小怪');
+        addLog(`⚔️ 你对${monsterName}造成 ${playerDamage} 点伤害 (${monsterName} HP: ${oldHp}→${m.hp})`, 'fight');
+        
+        if (m.hp <= 0) {
+            if (m.type === 'boss') {
+                stats.bossKilled = true;
+                addLog(`👑 你击败了Boss！`, 'fight');
+                gameWin = true;
+                showGameOverModal(true);
+                return;
+            } else if (m.type === 'big') {
+                stats.bigKills++;
+            } else {
+                stats.smallKills++;
+            }
+            
+            let upgradeChance = m.type === 'big' ? 0.5 : 0.25;
+            if (Math.random() < upgradeChance) {
+                let r = Math.random();
+                if (r < 0.33) { player.atk++; addLog(`✨ 击败${monsterName}，攻击+1`, 'fight'); }
+                else if (r < 0.66) { player.def++; addLog(`✨ 击败${monsterName}，防御+1`, 'fight'); }
+                else { player.maxHp++; player.hp++; addLog(`✨ 击败${monsterName}，生命上限+1`, 'fight'); }
+            }
+            monsters.splice(monsterIdx, 1);
+            return true;
+        } else {
+            let monsterDamage = Math.max(1, m.atk - player.def + (Math.random() < 0.2 ? 1 : 0));
+            let oldPlayerHp = player.hp;
+            player.hp -= monsterDamage;
+            addLog(`💥 ${monsterName}反击，对你造成 ${monsterDamage} 点伤害 (你的HP: ${oldPlayerHp}→${player.hp})`, 'fight');
+            if (player.hp <= 0) { 
+                player.hp = 0; 
+                gameOver = true;
+                addLog(`💔 勇者倒下了...`, 'fight');
+                showGameOverModal(false);
+            }
+            return false;
+        }
+    }
+
+    function movePlayer(dr, dc) {
+        if (gameWin || gameOver || waitingForEvent) return;
+        
+        let nr = player.row + dr;
+        let nc = player.col + dc;
+        if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) return;
+        if (maze[nr][nc] === 0) return;
+        
+        stats.steps++;
+        
+        let monsterHere = monsters.findIndex(m => m.row === nr && m.col === nc);
+        if (monsterHere !== -1) {
+            fightMonster(monsterHere);
+            updateStats();
+            draw();
+            return;
+        }
+        
+        player.row = nr;
+        player.col = nc;
+        
+        let cell = maze[nr][nc];
+        if (cell >= 2 && cell <= 4) {
+            stats.itemsCollected++;
+            if (cell === 2) { player.atk++; addLog(`🗡️ 捡起剑，攻击+1`, 'item'); }
+            else if (cell === 3) { player.def++; addLog(`🛡️ 捡起盾，防御+1`, 'item'); }
+            else if (cell === 4) { player.hp = Math.min(player.maxHp, player.hp + 1); addLog(`🧴 捡起血药，生命+1`, 'item'); }
+            maze[nr][nc] = 1;
+        } else if (cell === 6) {
+            maze[nr][nc] = 1;
+            triggerRandomEvent();
+        } else if (cell === 7) {
+            tryGoDown();
+            return;
+        }
+        
+        updateStats();
+        draw();
+        
+        if (!waitingForEvent && !gameWin && !gameOver) moveMonsters();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (let r=0; r<SIZE; r++) {
+            for (let c=0; c<SIZE; c++) {
+                const x = c*CELL_SIZE, y = r*CELL_SIZE;
+                let cell = maze[r][c];
+                
+                if (cell === 0) {
+                    ctx.fillStyle = '#1d4f5a';
+                    ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
+                    ctx.fillStyle = '#0d3640';
+                    ctx.fillRect(x+2, y+2, CELL_SIZE-5, CELL_SIZE-5);
+                } else {
+                    ctx.fillStyle = '#b7ab99';
+                    ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
+                    ctx.fillStyle = '#9a8b76';
+                    ctx.fillRect(x+2, y+2, CELL_SIZE-5, CELL_SIZE-5);
+                    
+                    ctx.font = 'bold 16px "Segoe UI", "Courier New", monospace';
+                    ctx.fillStyle = '#000000';
+                    ctx.shadowBlur = 8;
+                    
+                    if (cell === 2) {
+                        ctx.shadowColor = 'white';
+                        ctx.fillText('🗡️', x+5, y+18);
+                    } else if (cell === 3) {
+                        ctx.shadowColor = '#ccc';
+                        ctx.fillText('🛡️', x+5, y+18);
+                    } else if (cell === 4) {
+                        ctx.shadowColor = 'red';
+                        ctx.fillText('🧴', x+5, y+18);
+                    } else if (cell === 6) {
+                        ctx.shadowColor = '#c77dff';
+                        ctx.fillStyle = '#9b59b6';
+                        ctx.fillText('❓', x+5, y+18);
+                    } else if (cell === 7) {
+                        ctx.shadowColor = 'gold';
+                        ctx.fillStyle = 'gold';
+                        ctx.fillRect(x+5, y+5, 15, 15);
+                    }
+                    ctx.shadowBlur = 0;
+                }
+                ctx.strokeStyle = '#1f6d7a'; ctx.lineWidth = 0.5;
+                ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
+            }
+        }
+        
+        monsters.forEach(m => {
+            const x = m.col*CELL_SIZE, y = m.row*CELL_SIZE;
+            if (m.type === 'boss') {
+                ctx.fillStyle = '#8b0000';
+                ctx.shadowBlur = 20; ctx.shadowColor = 'red';
+            } else {
+                ctx.fillStyle = m.type === 'big' ? '#b04545' : '#a1652c';
+                ctx.shadowBlur = 12; ctx.shadowColor = 'darkred';
+            }
+            ctx.beginPath();
+            ctx.moveTo(x+5, y+2); ctx.lineTo(x+20, y+2); ctx.lineTo(x+23, y+12); 
+            ctx.lineTo(x+20, y+22); ctx.lineTo(x+5, y+22); ctx.lineTo(x+2, y+12); ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = 'white'; ctx.font = 'bold 9px monospace'; ctx.shadowBlur = 0;
+            ctx.fillText('❤️'+m.hp, x+3, y+16);
+        });
+        
+        const px = player.col*CELL_SIZE, py = player.row*CELL_SIZE;
+        ctx.fillStyle = '#3bc0db'; ctx.shadowBlur = 15; ctx.shadowColor = '#1f8a9c';
+        ctx.beginPath(); ctx.arc(px+12, py+12, 10, 0, 2*Math.PI); ctx.fill();
+        ctx.fillStyle = 'white'; ctx.font = 'bold 14px sans-serif'; ctx.shadowBlur = 0;
+        ctx.fillText('⚔️', px+5, py+18);
+    }
+
+    function resetPlayer() {
+        if (gameOver || gameWin) {
+            loadWorld(currentSeed);
+        } else {
+            player.row = 1; player.col = 1;
+            player.hp = player.maxHp;
+            draw();
+            addLog("🔄 重置到起点", 'stairs');
+        }
+    }
+
+    function onKey(e) {
+        const key = e.key;
+        if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) return;
+        e.preventDefault();
+        if (gameWin || gameOver || waitingForEvent) return;
+        
+        if (key === 'ArrowUp') movePlayer(-1, 0);
+        else if (key === 'ArrowDown') movePlayer(1, 0);
+        else if (key === 'ArrowLeft') movePlayer(0, -1);
+        else if (key === 'ArrowRight') movePlayer(0, 1);
+    }
+    
+    window.addEventListener('keydown', onKey);
+    window.onclick = function(e) { 
+        if (e.target === eventModal) {
+            eventModal.style.display = 'none'; 
+            waitingForEvent = false;
+        }
+        if (e.target === confirmModal) {
+            confirmModal.style.display = 'none';
+            pendingStairs = false;
+        }
+    };
+
+    document.getElementById('applySeed').addEventListener('click', ()=>{
+        loadWorld(seedInput.value.trim());
+    });
+    document.getElementById('randomSeed').addEventListener('click', ()=>{
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let p = ()=> chars[Math.floor(Math.random()*chars.length)];
+        let seed = `${p()}${p()}${p()}${p()}-${p()}${p()}${p()}${p()}-${p()}${p()}${p()}${p()}`;
+        loadWorld(seed);
+    });
+    document.getElementById('resetGame').addEventListener('click', resetPlayer);
+
+    loadWorld('AI-GROW-5LVL');
+})();
+</script>
+</body>
+</html>

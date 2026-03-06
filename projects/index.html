@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>魔力工坊 · Xouerta的项目陈列室</title>
+    <style>
+        /* ===== 基础风格 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Special+Elite&display=swap');
+
+        body {
+            font-family: 'Crimson Text', serif;
+            background-color: #1a0f0a;
+            background-image:
+                    radial-gradient(circle at 10% 20%, #3a281a66 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, #5a3e2a66 0%, transparent 50%);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 魔法粒子画布 */
+        #magic-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ===== 主容器 ===== */
+        .workshop-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #2a1e12;
+            background-image:
+                    radial-gradient(circle at 20% 30%, #5a3e2a33 0%, transparent 50%),
+                    repeating-linear-gradient(45deg, #3a2a1a22 0px, #3a2a1a22 4px, #2a1e1222 4px, #2a1e1222 8px);
+            box-shadow: 0 30px 60px #000000cc, 0 0 0 3px #b48654 inset, 0 0 0 8px #4a3222 inset;
+            border-radius: 40px 40px 20px 20px;
+            padding: 30px;
+            border: 1px solid #cfa86a;
+        }
+
+        /* ===== 页眉 ===== */
+        .workshop-header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .workshop-title {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 4rem;
+            color: #f0dbb0;
+            text-shadow:
+                    4px 4px 0 #b48654,
+                    8px 8px 0 #5a3e2a,
+                    0 0 30px #ffaa33,
+                    0 0 60px #ff5500;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            animation: titlePulse 4s infinite alternate;
+        }
+
+        @keyframes titlePulse {
+            0% { text-shadow: 4px 4px 0 #b48654, 8px 8px 0 #5a3e2a, 0 0 30px #ffaa33, 0 0 60px #ff5500; }
+            100% { text-shadow: 4px 4px 0 #d4a56c, 10px 10px 0 #7a522a, 0 0 50px #ffcc66, 0 0 90px #ff8833; }
+        }
+
+        .workshop-subtitle {
+            font-size: 1.5rem;
+            color: #dbb06c;
+            font-style: italic;
+            background: #1a0f0aaa;
+            display: inline-block;
+            padding: 10px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(3px);
+            border: 2px solid #cfa86a;
+            box-shadow: 0 6px 0 #4a3222;
+        }
+
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 10px;
+            color: #b48654;
+            font-size: 1.1rem;
+        }
+
+        .breadcrumb a {
+            color: #dbb06c;
+            text-decoration: none;
+            border-bottom: 1px dashed #b48654;
+        }
+
+        .breadcrumb a:hover {
+            color: #ffcc66;
+            border-bottom: 1px solid #ffaa33;
+        }
+
+        /* ===== 项目分类 ===== */
+        .project-schools {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0 40px;
+        }
+
+        .school-tag {
+            font-family: 'MedievalSharp', cursive;
+            padding: 10px 30px;
+            background: #3a2a1a;
+            color: #dbb06c;
+            border: 2px solid #b48654;
+            border-radius: 40px 5px 40px 5px;
+            box-shadow: 4px 4px 0 #1a0f0a, 0 0 15px #ffaa3366;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .school-tag:hover,
+        .school-tag.active {
+            background: #5a3e2a;
+            color: #fff2d7;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 6px 6px 0 #1a0f0a, 0 0 30px #ffaa33, 0 0 60px #ff8833;
+            border-color: #ffdb9d;
+        }
+
+        .school-tag.active::before {
+            content: '⚡';
+            margin-right: 8px;
+        }
+
+        /* ===== 项目网格 ===== */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        /* 项目卡片 - 神器风格 */
+        .project-card {
+            background: #2a1e12;
+            background: linear-gradient(145deg, #3a2a1a, #1a120a);
+            border: 3px solid #b48654;
+            border-radius: 30px 5px 30px 5px;
+            padding: 0;
+            box-shadow: 8px 8px 0 #0a0a0a, 0 0 0 2px #cfa86a inset;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, #ffaa3322 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 12px 12px 0 #0a0a0a, 0 0 30px #ffaa33, 0 0 0 3px #ffdb9d inset;
+            border-color: #ffdb9d;
+        }
+
+        .project-card:hover::before {
+            opacity: 1;
+            animation: portalSwirl 6s linear infinite;
+        }
+
+        @keyframes portalSwirl {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 项目头部（图标区域） */
+        .project-header {
+            padding: 20px;
+            border-bottom: 2px solid #b48654;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #1a120a;
+        }
+
+        .project-icon {
+            font-size: 2.5rem;
+            background: #5a3e2a;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #b48654;
+            box-shadow: 0 0 15px #ffaa33;
+        }
+
+        .project-name {
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.6rem;
+            color: #f0dbb0;
+            margin: 0;
+            flex: 1;
+        }
+
+        /* 项目内容 */
+        .project-content {
+            padding: 20px;
+            flex: 1;
+        }
+
+        .project-description {
+            color: #dbb06c;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            min-height: 80px;
+        }
+
+        /* 项目元信息 */
+        .project-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px dashed #b48654;
+            border-bottom: 1px dashed #b48654;
+        }
+
+        .project-language {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #dbb06c;
+        }
+
+        .language-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ffaa33;
+            box-shadow: 0 0 10px #ffaa33;
+        }
+
+        .project-stars {
+            color: #b48654;
+            font-family: 'Special Elite', cursive;
+        }
+
+        .project-stars::before {
+            content: '⭐';
+            margin-right: 5px;
+        }
+
+        .project-forks::before {
+            content: '🍴';
+            margin-right: 5px;
+        }
+
+        /* 技术标签 */
+        .project-tech {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+        }
+
+        .tech-tag {
+            background: #3a2a1a;
+            color: #dbb06c;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            border: 1px solid #b48654;
+            font-family: 'Special Elite', cursive;
+        }
+
+        /* 项目链接 */
+        .project-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .project-link {
+            flex: 1;
+            padding: 10px;
+            background: #5a3e2a;
+            color: #f0dbb0;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1rem;
+            border: 2px solid #b48654;
+            border-radius: 30px 5px 30px 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .project-link:hover {
+            background: #7a5a3a;
+            border-color: #ffdb9d;
+            box-shadow: 0 0 20px #ffaa33;
+            transform: scale(1.02);
+        }
+
+        .project-link.github::before {
+            content: '⌨️';
+            margin-right: 5px;
+        }
+
+        .project-link.demo::before {
+            content: '🌐';
+            margin-right: 5px;
+        }
+
+        /* 加载状态 */
+        .loading-spell {
+            text-align: center;
+            padding: 80px;
+            font-size: 1.8rem;
+            color: #dbb06c;
+            animation: pulseGlow 2s infinite;
+            grid-column: 1 / -1;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; text-shadow: 0 0 5px #ffaa33; }
+            50% { opacity: 1; text-shadow: 0 0 20px #ffaa33, 0 0 40px #ff8833; }
+        }
+
+        /* 空状态 */
+        .no-projects {
+            text-align: center;
+            padding: 60px;
+            color: #b48654;
+            font-size: 1.3rem;
+            font-style: italic;
+            grid-column: 1 / -1;
+        }
+
+        /* ===== 页脚 ===== */
+        .workshop-footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #b48654;
+        }
+
+        .rune-divider {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.5rem;
+            color: #dbb06c;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            .workshop-title {
+                font-size: 2.8rem;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .project-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<canvas id="magic-particles"></canvas>
+
+<div class="workshop-container">
+    <!-- 页眉 -->
+    <header class="workshop-header">
+        <h1 class="workshop-title">🔧 魔力工坊</h1>
+        <div class="workshop-subtitle">艾德温的神器陈列室 · 第八纪</div>
+        <div class="breadcrumb">
+            <a href="../index.html">🏠 旅者大厅</a> ✦
+            <a href="../blog/index.html">📖 知识卷轴</a> ✦
+            <a href="../games/index.html">🎮 奇迹游戏</a> ✦
+            <span>🔧 魔力工坊</span>
+        </div>
+    </header>
+
+    <!-- 项目分类 -->
+    <div class="project-schools" id="project-filters">
+        <span class="school-tag active" data-category="all">所有项目</span>
+        <span class="school-tag" data-category="Web">🌐 网页项目</span>
+        <span class="school-tag" data-category="工具">⚙️ 魔法工具</span>
+        <span class="school-tag" data-category="游戏">🎲 游戏</span>
+        <span class="school-tag" data-category="库">📚 博客书库</span>
+    </div>
+
+    <!-- 项目网格 -->
+    <div class="projects-grid" id="projects-grid">
+        <!-- 会通过 JavaScript 动态生成 -->
+        <div class="loading-spell">✨ 正在召唤神器 ...</div>
+    </div>
+
+    <!-- GitHub 统计 -->
+    <div style="text-align: center; margin: 40px 0; padding: 20px; background: #1a120a; border: 2px solid #b48654; border-radius: 30px 5px 30px 5px;">
+        <p style="color: #dbb06c; font-size: 1.2rem;">
+            ✦ 更多神器可前往 GitHub 查阅 ✦
+        </p>
+        <a href="https://github.com/Xouerta" target="_blank" style="display: inline-block; margin-top: 15px; padding: 10px 30px; background: #5a3e2a; color: #f0dbb0; text-decoration: none; border: 2px solid #b48654; border-radius: 40px 5px 40px 5px; font-family: 'MedievalSharp', cursive;">
+            ⌨️ 前往 GitHub 锻造台
+        </a>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="workshop-footer">
+        <div class="rune-divider">
+            <span>✧</span> <span>⚡</span> <span>✧</span> <span>⚡</span> <span>✧</span>
+        </div>
+        <p>© Xouerta -2026· 魔力工坊 · 每一件神器都源自热爱</p>
+    </footer>
+</div>
+
+<script>
+    // ===== 魔法粒子效果 =====
+    (function initParticles() {
+        const canvas = document.getElementById('magic-particles');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            particles = [];
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    size: Math.random() * 4 + 1,
+                    speedX: (Math.random() - 0.5) * 0.2,
+                    speedY: (Math.random() - 0.5) * 0.2,
+                    color: `rgba(${200 + Math.random() * 55}, ${100 + Math.random() * 100}, 50, ${Math.random() * 0.3 + 0.2})`
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            particles.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#ff8833';
+                ctx.shadowBlur = 12;
+                ctx.fill();
+
+                p.x += p.speedX;
+                p.y += p.speedY;
+
+                if (p.x < 0 || p.x > width) p.speedX *= -1;
+                if (p.y < 0 || p.y > height) p.speedY *= -1;
+            });
+
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        draw();
+    })();
+
+    // ===== 项目数据（手动维护） =====
+    const projectsData = [
+        {
+            name: '知识卷轴博客',
+            description: '一个基于vitepress的静态博客系统，支持 Markdown 文章，分类筛选，响应式设计。',
+            icon: '📖',
+            category: 'Web',
+            language: 'JavaScript',
+            languageColor: '#f1e05a',
+            stars: 24,
+            forks: 8,
+            tech: ['HTML', 'CSS', 'JavaScript', 'Marked.js'],
+            githubUrl: 'https://github.com/Xouerta/Xouerta.github.io',
+            demoUrl: 'https://你的用户名.github.io/knowledge-scroll',
+            featured: true
+        },
+        {
+            name: 'netwebhack',
+            description: '一个仿照nethack做的前端小游戏，纯原生实现。',
+            icon: '🎮',
+            category: '游戏',
+            language: 'JavaScript',
+            languageColor: '#f1e05a',
+            stars: 18,
+            forks: 5,
+            tech: ['HTML', 'CSS', 'JavaScript', 'Canvas'],
+            githubUrl: 'https://github.com/Xouerta/netwebhack',
+            demoUrl: 'https://你的用户名.github.io/miracle-games',
+            featured: true
+        },
+        {
+            name: '符文记忆训练',
+            description: '一个记忆训练小游戏，需要记住并重现符文序列，考验短期记忆力。',
+            icon: '⚡',
+            category: '游戏',
+            language: 'JavaScript',
+            languageColor: '#f1e05a',
+            stars: 12,
+            forks: 3,
+            tech: ['HTML', 'CSS', 'JavaScript'],
+            githubUrl: 'https://github.com/你的用户名/rune-memory',
+            demoUrl: 'https://你的用户名.github.io/rune-memory',
+            featured: false
+        },
+        {
+            name: '元素配对',
+            description: '经典的记忆配对游戏，翻牌找到相同的元素符号。',
+            icon: '🔥',
+            category: '游戏',
+            language: 'JavaScript',
+            languageColor: '#f1e05a',
+            stars: 9,
+            forks: 2,
+            tech: ['HTML', 'CSS', 'JavaScript'],
+            githubUrl: 'https://github.com/你的用户名/element-match',
+            demoUrl: 'https://你的用户名.github.io/element-match',
+            featured: false
+        },
+        {
+            name: '炼金术士的计算器',
+            description: '炼金配方计算工具，输入材料自动计算产出和成功率。',
+            icon: '⚗️',
+            category: '工具',
+            language: 'TypeScript',
+            languageColor: '#2b7489',
+            stars: 32,
+            forks: 6,
+            tech: ['TypeScript', 'React', 'Tailwind'],
+            githubUrl: 'https://github.com/你的用户名/alchemy-calculator',
+            demoUrl: 'https://你的用户名.github.io/alchemy-calculator',
+            featured: true
+        },
+        {
+            name: '魔法咒语库',
+            description: '收集和整理各种奇幻咒语，支持搜索和分类浏览。',
+            icon: '🔮',
+            category: '库',
+            language: 'Python',
+            languageColor: '#3572A5',
+            stars: 45,
+            forks: 12,
+            tech: ['Python', 'Flask', 'SQLite'],
+            githubUrl: 'https://github.com/你的用户名/spell-library',
+            demoUrl: null,
+            featured: false
+        },
+        {
+            name: '迷雾森林地图',
+            description: '交互式地图应用，展示迷雾森林的各种地点和生物分布。',
+            icon: '🗺️',
+            category: 'Web',
+            language: 'JavaScript',
+            languageColor: '#f1e05a',
+            stars: 27,
+            forks: 4,
+            tech: ['JavaScript', 'Leaflet', 'GeoJSON'],
+            githubUrl: 'https://github.com/你的用户名/mist-forest-map',
+            demoUrl: 'https://你的用户名.github.io/mist-forest-map',
+            featured: true
+        },
+        {
+            name: '法师笔记 CLI',
+            description: '命令行工具，用于快速记录和管理法师的日常笔记。',
+            icon: '⌨️',
+            category: '工具',
+            language: 'Python',
+            languageColor: '#3572A5',
+            stars: 15,
+            forks: 2,
+            tech: ['Python', 'Click', 'SQLite'],
+            githubUrl: 'https://github.com/你的用户名/wizard-notes-cli',
+            demoUrl: null,
+            featured: false
+        }
+    ];
+
+    // ===== 渲染项目卡片 =====
+    function renderProjects(category = 'all') {
+        const grid = document.getElementById('projects-grid');
+
+        // 筛选项目
+        const filtered = category === 'all'
+            ? projectsData
+            : projectsData.filter(p => p.category === category);
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '<div class="no-projects">📭 这个分类的神器还在锻造中...</div>';
+            return;
+        }
+
+        // 生成 HTML
+        let html = '';
+
+        filtered.forEach(project => {
+            // 处理语言颜色
+            const languageColor = project.languageColor || '#ffaa33';
+
+            // 处理标签
+            const techTags = project.tech.map(t =>
+                `<span class="tech-tag">${t}</span>`
+            ).join('');
+
+            html += `
+                    <div class="project-card" data-category="${project.category}">
+                        <div class="project-header">
+                            <div class="project-icon">${project.icon}</div>
+                            <h2 class="project-name">${project.name}</h2>
+                        </div>
+
+                        <div class="project-content">
+                            <p class="project-description">${project.description}</p>
+
+                            <div class="project-meta">
+                                <div class="project-language">
+                                    <span class="language-dot" style="background: ${languageColor}; box-shadow: 0 0 10px ${languageColor};"></span>
+                                    <span>${project.language}</span>
+                                </div>
+                                <div class="project-stars">${project.stars}</div>
+                                <div class="project-forks">${project.forks}</div>
+                            </div>
+
+                            <div class="project-tech">
+                                ${techTags}
+                            </div>
+
+                            <div class="project-links">
+                                <a href="${project.githubUrl}" target="_blank" class="project-link github">GitHub</a>
+                                ${project.demoUrl ?
+                `<a href="${project.demoUrl}" target="_blank" class="project-link demo">试玩</a>` :
+                `<span class="project-link" style="opacity:0.5; cursor:not-allowed;">暂无试玩</span>`
+            }
+                            </div>
+                        </div>
+                    </div>
+                `;
+        });
+
+        // 模拟加载延迟
+        setTimeout(() => {
+            grid.innerHTML = html;
+        }, 600);
+    }
+
+    // ===== 分类筛选 =====
+    function setupFilters() {
+        const filters = document.querySelectorAll('.school-tag');
+
+        filters.forEach(filter => {
+            filter.addEventListener('click', function() {
+                // 更新激活状态
+                filters.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+
+                // 重新渲染项目
+                const category = this.dataset.category;
+                renderProjects(category);
+            });
+        });
+    }
+
+    // ===== 初始化 =====
+    window.addEventListener('load', () => {
+        setupFilters();
+        renderProjects('all');
+    });
+</script>
+</body>
+</html>
