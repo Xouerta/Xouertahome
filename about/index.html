@@ -515,7 +515,7 @@
         <div class="skill-card">
             <div class="skill-icon">⚛️</div>
             <div class="skill-name">React</div>
-            <div class="skill-level">大师级</div>
+            <div class="skill-level">入门级</div>
         </div>
         <div class="skill-card">
             <div class="skill-icon">▲</div>
@@ -525,12 +525,12 @@
         <div class="skill-card">
             <div class="skill-icon">⎇</div>
             <div class="skill-name">TypeScript</div>
-            <div class="skill-level">大师级</div>
+            <div class="skill-level">基础级</div>
         </div>
         <div class="skill-card">
             <div class="skill-icon">🎨</div>
             <div class="skill-name">CSS魔法</div>
-            <div class="skill-level">大师级</div>
+            <div class="skill-level">学徒级</div>
         </div>
         <div class="skill-card">
             <div class="skill-icon">⚡</div>
@@ -540,6 +540,26 @@
         <div class="skill-card">
             <div class="skill-icon">📦</div>
             <div class="skill-name">Webpack</div>
+            <div class="skill-level">熟练</div>
+        </div>
+        <div class="skill-card">
+            <div class="skill-icon">👾</div>
+            <div class="skill-name">Git</div>
+            <div class="skill-level">基础级</div>
+        </div>
+        <div class="skill-card">
+            <div class="skill-icon">🐉</div>
+            <div class="skill-name">python</div>
+            <div class="skill-level">基础级</div>
+        </div>
+        <div class="skill-card">
+            <div class="skill-icon">🐋</div>
+            <div class="skill-name">Docker</div>
+            <div class="skill-level">基础级</div>
+        </div>
+        <div class="skill-card">
+            <div class="skill-icon">🥝</div>
+            <div class="skill-name">node</div>
             <div class="skill-level">熟练</div>
         </div>
     </div>
@@ -554,11 +574,11 @@
 
     <!-- 魔法符文菜单（导航到各个页面） -->
     <nav class="rune-menu">
-        <a href="index.html" class="rune-item active">🏠 旅者大厅</a>
-        <a href="blog/index.html" class="rune-item">📖 知识卷轴</a>
-        <a href="projects/index.html" class="rune-item">🔧 魔力工坊</a>
-        <a href="games/index.html" class="rune-item">🎲 奇迹游戏</a>
-        <a href="friends/index.html" class="rune-item">🤝 同盟印记</a>
+        <a href="../index.html" class="rune-item active">🏠 旅者大厅</a>
+        <a href="../blog/index.html" class="rune-item">📖 知识卷轴</a>
+        <a href="../projects/index.html" class="rune-item">🔧 魔力工坊</a>
+        <a href="../games/index.html" class="rune-item">🎲 奇迹游戏</a>
+        <a href="../friends/index.html" class="rune-item">🤝 同盟印记</a>
     </nav>
 
     <!-- 动态魔法信标 -->
@@ -638,14 +658,16 @@
     (function() {
         const typedTextElement = document.getElementById('typed-text');
         const textLines = [
-            '<span>⚛️ 第一纪 · React启蒙</span><br>',
-            '我，Xouerta，在代码的迷雾森林中出生。最初接触 React 时，便被组件化的魔法深深吸引。从 class 组件到 hooks，我见证了 UI 哲学的演进。<br><br>',
-            '<span>▲ 第三纪 · Vue邂逅</span><br>',
-            '在探索东方魔法时，遇到了 Vue。它的简洁与优雅让我着迷，响应式系统如同自然元素的流动。<br><br>',
-            '<span>⎇ 第五纪 · TypeScript觉醒</span><br>',
-            '为了对抗运行时错误，我学习了 TypeScript。类型系统如同古老的符文，为代码注入确定性。<br><br>',
+            '<span>⚛自我介绍</span><br>',
+            '我叫Xouerta，大四网络工程学生<br><br>',
+            '<span>▲ </span><br>',
+            '余自中学时始涉Python编程之术，然其时未得精通，犹若浅尝辄止耳。<br><br>',
+            '<span>⎇ </span><br>',
+            '及至大学初年，余尝习众技：若C++者，尝制小戏以为戏，然其构架芜杂，羞以示人；若C#者，唯览典籍，未尝操觚；亦尝试Unity之器，终以困阻而弃之。<br><br>',
+            '今余既醉心于前端之创制，亦好express构后端之业。初时唯以HTML、CSS并JavaScript作静观之页，今思之，颇觉稚拙。<br><br>',
+            '然偶遇Vue之器，惊其便巧，遂习之不辍。继而探React之奥，其法迥异于Vue，别有洞天。<br><br>',
             '<span>✨ 如今</span><br>',
-            '我在 GitHub 上以 <a href="https://github.com/Xouerta" style="color:#8a4e1f; text-decoration:underline;">Xouerta</a> 的名义游历，收集最佳实践，用 CSS 编织视觉效果，将每一次交互变成一场魔法表演。'
+            '我在 GitHub 上以 <a href="https://github.com/Xouerta" style="color:#8a4e1f; text-decoration:underline;">Xouerta</a> 的名义游历，（自惭进境迟滞）方今之世，恐未足称初学之士。然亦无妨，但怀来日之望，岂不足慰乎？'
         ];
 
         let lineIndex = 0;

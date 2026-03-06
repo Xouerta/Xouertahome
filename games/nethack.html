@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetHack·成长AI·动态追逐 | 地下城</title>
+    <title>NetHack·成长AI·动态追逐 | 地下城巫师棋</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', 'Courier New', monospace; }
         body {
@@ -206,7 +206,7 @@
                 <div class="legend-item"><span class="stairs-dot"></span> 楼梯(下一层)</div>
             </div>
         </div>
-        
+
         <!-- 日志栏 -->
         <div class="log-area">
             <div class="log-header">📜 战斗日志</div>
@@ -222,7 +222,7 @@
     const SIZE = 40;
     const CELL_SIZE = 25;
     const TOTAL_LEVELS = 5;
-    
+
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const seedInput = document.getElementById('seedInput');
@@ -232,7 +232,7 @@
     const monsterCountSpan = document.getElementById('monsterCount');
     const levelSpan = document.getElementById('levelDisplay');
     const logContent = document.getElementById('logContent');
-    
+
     const eventModal = document.getElementById('eventModal');
     const confirmModal = document.getElementById('confirmModal');
     const gameOverModal = document.getElementById('gameOverModal');
@@ -245,7 +245,7 @@
 
     let currentLevel = 1;
     let pendingStairs = false;
-    
+
     let stats = {
         smallKills: 0,
         bigKills: 0,
@@ -257,22 +257,22 @@
     };
 
     let maze = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-    
+
     let player = {
         row: 1, col: 1,
         hp: 5, maxHp: 5,
         atk: 1,
         def: 1
     };
-    
+
     let stairsPos = { row: SIZE-2, col: SIZE-2 };
-    
+
     let monsters = [];
     const MAX_MONSTERS = 15;
-    
+
     let currentSeed = "AI-GROW-5LVL";
     let rng = Math.random;
-    
+
     let gameOver = false;
     let gameWin = false;
     let waitingForEvent = false;
@@ -296,7 +296,7 @@
     function showGameOverModal(isVictory) {
         const resultTitle = document.getElementById('resultTitle');
         resultTitle.innerText = isVictory ? '🏆 胜利！你击败了Boss！' : '💔 勇者倒下了';
-        
+
         const baseScore = 100;
         const smallKillScore = stats.smallKills * 10;
         const bigKillScore = stats.bigKills * 25;
@@ -308,11 +308,11 @@
         const stepScore = Math.max(0, 300 - stats.steps);
         const eventScore = stats.eventsTriggered * 15;
         const levelScore = currentLevel * 100;
-        
-        const totalScore = baseScore + smallKillScore + bigKillScore + bossScore + 
-                          atkScore + defScore + hpScore + itemScore + stepScore + 
+
+        const totalScore = baseScore + smallKillScore + bigKillScore + bossScore +
+                          atkScore + defScore + hpScore + itemScore + stepScore +
                           eventScore + levelScore;
-        
+
         document.getElementById('baseScore').innerText = baseScore;
         document.getElementById('smallKills').innerText = stats.smallKills + ' ×10 = ' + smallKillScore;
         document.getElementById('bigKills').innerText = stats.bigKills + ' ×25 = ' + bigKillScore;
@@ -325,16 +325,16 @@
         document.getElementById('eventScore').innerText = stats.eventsTriggered + ' ×15 = ' + eventScore;
         document.getElementById('levelScore').innerText = currentLevel + ' ×100 = ' + levelScore;
         document.getElementById('totalScore').innerText = '总分: ' + totalScore;
-        
+
         gameOverModal.style.display = 'flex';
     }
 
     function formatSeed(p1, p2, p3) {
-        return p1.toUpperCase().padEnd(4,'A').slice(0,4) + '-' + 
-               p2.toUpperCase().padEnd(4,'A').slice(0,4) + '-' + 
+        return p1.toUpperCase().padEnd(4,'A').slice(0,4) + '-' +
+               p2.toUpperCase().padEnd(4,'A').slice(0,4) + '-' +
                p3.toUpperCase().padEnd(4,'A').slice(0,4);
     }
-    
+
     function normalizeSeed(raw) {
         let cleaned = raw.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
         let parts = cleaned.split('-').filter(p => p.length > 0);
@@ -343,13 +343,13 @@
         for (let i=0; i<Math.min(parts.length,3); i++) segs[i] = parts[i];
         return formatSeed(segs[0] || "A", segs[1] || "A", segs[2] || "A");
     }
-    
+
     function seedHash(seedStr) {
         let h = 0;
         for (let i=0; i<seedStr.length; i++) h = Math.imul(31, h) + seedStr.charCodeAt(i) | 0;
         return Math.abs(h) + 1;
     }
-    
+
     function createRNG(seedInt) {
         let state = seedInt % 2147483647;
         if (state <= 0) state = 1;
@@ -363,7 +363,7 @@
     function getMonsterPower(monster) {
         return monster.atk + monster.def + Math.floor(monster.hp / 2);
     }
-    
+
     // 计算玩家战力
     function getPlayerPower() {
         return player.atk + player.def + Math.floor(player.hp / 2);
@@ -383,7 +383,7 @@
             const j = Math.floor(rngFunc() * (i+1));
             [freeCells[i], freeCells[j]] = [freeCells[j], freeCells[i]];
         }
-        
+
         let monsterCount;
         if (level === TOTAL_LEVELS) {
             monsterCount = 0;
@@ -391,11 +391,11 @@
             monsterCount = 5 + level * 2 + Math.floor(rngFunc() * 4);
         }
         monsterCount = Math.min(monsterCount, MAX_MONSTERS);
-        
+
         for (let i=0; i<monsterCount && i<freeCells.length; i++) {
             let [r,c] = freeCells[i];
             let isBig = rngFunc() < (0.2 + level * 0.1);
-            
+
             // 属性随层数增长，但限制范围
             let baseAtk, baseDef, baseHp;
             if (isBig) {
@@ -415,7 +415,7 @@
                 baseDef = Math.min(baseDef, 9);
                 baseHp = Math.min(baseHp, 10);
             }
-            
+
             mobs.push({
                 row: r, col: c,
                 type: isBig ? 'big' : 'small',
@@ -427,7 +427,7 @@
                 lastMove: 0
             });
         }
-        
+
         if (level === TOTAL_LEVELS && freeCells.length > 0) {
             let [r,c] = freeCells[0];
             // Boss属性随层数增强，但更强大
@@ -444,24 +444,24 @@
                 id: 'boss'
             });
         }
-        
+
         return mobs;
     }
 
     // 智能怪物移动
     function moveMonsters() {
         if (gameWin || gameOver || waitingForEvent) return;
-        
+
         const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
         let newMonsters = [];
         const playerPower = getPlayerPower();
-        
+
         for (let m of monsters) {
             if (m.type === 'boss') {
                 // Boss始终追逐玩家
                 let bestDir = null;
                 let bestDist = 999;
-                
+
                 for (let [dr, dc] of dirs) {
                     let nr = m.row + dr;
                     let nc = m.col + dc;
@@ -470,14 +470,14 @@
                     let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
                     if (occupied) continue;
                     if (nr === stairsPos.row && nc === stairsPos.col) continue;
-                    
+
                     let dist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
                     if (dist < bestDist) {
                         bestDist = dist;
                         bestDir = [dr, dc];
                     }
                 }
-                
+
                 if (bestDir) {
                     m.row += bestDir[0];
                     m.col += bestDir[1];
@@ -486,18 +486,18 @@
                 newMonsters.push(m);
                 continue;
             }
-            
+
             // 计算与玩家的距离
             let dist = Math.abs(m.row - player.row) + Math.abs(m.col - player.col);
             let monsterPower = getMonsterPower(m);
-            
+
             // 如果在两格内
             if (dist <= 2) {
                 if (monsterPower > playerPower) {
                     // 怪物更强，追逐玩家
                     let bestDir = null;
                     let bestDist = 999;
-                    
+
                     for (let [dr, dc] of dirs) {
                         let nr = m.row + dr;
                         let nc = m.col + dc;
@@ -506,14 +506,14 @@
                         let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
                         if (occupied) continue;
                         if (nr === stairsPos.row && nc === stairsPos.col) continue;
-                        
+
                         let newDist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
                         if (newDist < bestDist) {
                             bestDist = newDist;
                             bestDir = [dr, dc];
                         }
                     }
-                    
+
                     if (bestDir) {
                         m.row += bestDir[0];
                         m.col += bestDir[1];
@@ -523,7 +523,7 @@
                     // 玩家更强，怪物逃跑
                     let bestDir = null;
                     let bestDist = -1;
-                    
+
                     for (let [dr, dc] of dirs) {
                         let nr = m.row + dr;
                         let nc = m.col + dc;
@@ -532,14 +532,14 @@
                         let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
                         if (occupied) continue;
                         if (nr === stairsPos.row && nc === stairsPos.col) continue;
-                        
+
                         let newDist = Math.abs(nr - player.row) + Math.abs(nc - player.col);
                         if (newDist > bestDist) {
                             bestDist = newDist;
                             bestDir = [dr, dc];
                         }
                     }
-                    
+
                     if (bestDir) {
                         m.row += bestDir[0];
                         m.col += bestDir[1];
@@ -558,7 +558,7 @@
                         let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
                         if (occupied) continue;
                         if (nr === stairsPos.row && nc === stairsPos.col) continue;
-                        
+
                         m.row = nr; m.col = nc;
                         moved = true;
                     }
@@ -576,7 +576,7 @@
                     let occupied = monsters.some(mm => mm.row === nr && mm.col === nc);
                     if (occupied) continue;
                     if (nr === stairsPos.row && nc === stairsPos.col) continue;
-                    
+
                     m.row = nr; m.col = nc;
                     moved = true;
                 }
@@ -584,29 +584,29 @@
             newMonsters.push(m);
         }
         monsters = newMonsters;
-        
+
         // 检查玩家是否被怪物撞上
         let monsterIdx = monsters.findIndex(m => m.row === player.row && m.col === player.col);
         if (monsterIdx !== -1) {
             fightMonster(monsterIdx);
         }
-        
+
         draw();
     }
 
     // 其余函数保持不变（generateDungeonLevel, placeLevelItems, loadLevel, fightMonster等）
     // 为节省篇幅，这里省略了之前已有的函数，实际运行时需要包含完整代码
-    
+
     // 为了代码完整，这里重新包含必要的函数
     function generateDungeonLevel(level, rngFunc) {
         let grid = Array(SIZE).fill().map(() => Array(SIZE).fill(0));
-        
+
         for (let r=1; r<SIZE-1; r+=2) {
             for (let c=1; c<SIZE-1; c+=2) {
                 grid[r][c] = 1;
             }
         }
-        
+
         let edges = [];
         for (let r=1; r<SIZE-1; r+=2) {
             for (let c=1; c<SIZE-3; c+=2) {
@@ -618,12 +618,12 @@
                 edges.push({ wallRow: r+1, wallCol: c, a: [r,c], b: [r+2,c] });
             }
         }
-        
+
         for (let i=edges.length-1; i>0; i--) {
             const j = Math.floor(rngFunc() * (i+1));
             [edges[i], edges[j]] = [edges[j], edges[i]];
         }
-        
+
         const parent = new Map();
         function find(k) {
             if (!parent.has(k)) parent.set(k, k);
@@ -631,7 +631,7 @@
             return parent.get(k);
         }
         function union(a,b) { parent.set(find(a), find(b)); }
-        
+
         for (let e of edges) {
             let ka = e.a[0]+','+e.a[1];
             let kb = e.b[0]+','+e.b[1];
@@ -640,14 +640,14 @@
                 union(ka, kb);
             }
         }
-        
+
         const numSmallRooms = 6 + Math.floor(rngFunc() * 8);
         for (let i=0; i<numSmallRooms; i++) {
             let w = 3 + Math.floor(rngFunc() * 4);
             let h = 3 + Math.floor(rngFunc() * 4);
             let x = 2 + Math.floor(rngFunc() * (SIZE - w - 4));
             let y = 2 + Math.floor(rngFunc() * (SIZE - h - 4));
-            
+
             for (let ry = y; ry < y+h; ry++) {
                 for (let rx = x; rx < x+w; rx++) {
                     if (ry > 0 && ry < SIZE-1 && rx > 0 && rx < SIZE-1) {
@@ -655,7 +655,7 @@
                     }
                 }
             }
-            
+
             for (let tries=0; tries<4; tries++) {
                 let doorX = x + Math.floor(rngFunc() * w);
                 let doorY = y + Math.floor(rngFunc() * h);
@@ -666,7 +666,7 @@
                 if (dir === 3 && doorX < SIZE-2) grid[doorY][doorX+1] = 1;
             }
         }
-        
+
         if (level === TOTAL_LEVELS) {
             for (let y = 8; y < SIZE-8; y++) {
                 for (let x = 8; x < SIZE-8; x++) {
@@ -683,14 +683,14 @@
                 }
             }
         }
-        
+
         for (let i=0; i<SIZE; i++) {
             grid[0][i] = 0;
             grid[SIZE-1][i] = 0;
             grid[i][0] = 0;
             grid[i][SIZE-1] = 0;
         }
-        
+
         return grid;
     }
 
@@ -706,19 +706,19 @@
             const j = Math.floor(rngFunc() * (i+1));
             [free[i], free[j]] = [free[j], free[i]];
         }
-        
+
         const itemCount = 3 + level + Math.floor(rngFunc() * 4);
         for (let i=0; i<itemCount && i<free.length; i++) {
             let type = Math.floor(rngFunc() * 3) + 2;
             newGrid[free[i][0]][free[i][1]] = type;
         }
-        
+
         const eventCount = 2 + Math.floor(rngFunc() * 4);
         for (let i=0; i<eventCount && i+itemCount < free.length; i++) {
             let [r,c] = free[i+itemCount];
             newGrid[r][c] = 6;
         }
-        
+
         let stairsPlaced = false;
         for (let i=itemCount+eventCount; i<free.length && !stairsPlaced; i++) {
             let [r,c] = free[i];
@@ -728,27 +728,27 @@
                 stairsPlaced = true;
             }
         }
-        
+
         return newGrid;
     }
 
     function loadLevel(level) {
         const levelRng = createRNG(seedHash(currentSeed) + level * 1000);
-        
+
         let levelGrid = generateDungeonLevel(level, levelRng);
-        
+
         const itemRng = createRNG(seedHash(currentSeed) + level * 1000 + 500);
         levelGrid = placeLevelItems(level, levelGrid, itemRng);
-        
+
         const monsterRng = createRNG(seedHash(currentSeed) + level * 1000 + 800);
         monsters = spawnLevelMonsters(level, levelGrid, monsterRng);
-        
+
         maze = levelGrid;
-        
+
         player.row = 1;
         player.col = 1;
         maze[1][1] = 1;
-        
+
         levelSpan.innerText = level + '/' + TOTAL_LEVELS;
         updateStats();
         draw();
@@ -796,10 +796,10 @@
     function loadWorld(seedStr) {
         currentSeed = normalizeSeed(seedStr);
         seedInput.value = currentSeed;
-        
+
         currentLevel = 1;
         player = { row: 1, col: 1, hp: 5, maxHp: 5, atk: 1, def: 1 };
-        
+
         stats = {
             smallKills: 0,
             bigKills: 0,
@@ -809,13 +809,13 @@
             steps: 0,
             startTime: Date.now()
         };
-        
+
         gameWin = false;
         gameOver = false;
         waitingForEvent = false;
-        
+
         logContent.innerHTML = '<div class="log-entry">🎮 游戏开始</div>';
-        
+
         loadLevel(1);
     }
 
@@ -835,13 +835,13 @@
             desc: "你踩到了机关！周围怪物被惊动了...",
             options: [
                 { text: "🏃 快速逃离 (不改变)", effect: (p,m) => { addLog("🏃 快速逃离，什么都没发生", 'event'); } },
-                { text: "💪 摧毁陷阱 (+1攻, 但召唤1只大怪)", effect: (p,m) => { 
-                    p.atk++; 
-                    m.push({ row: p.row, col: p.col, type:'big', atk:3, def:3, hp:5, id:Date.now() }); 
+                { text: "💪 摧毁陷阱 (+1攻, 但召唤1只大怪)", effect: (p,m) => {
+                    p.atk++;
+                    m.push({ row: p.row, col: p.col, type:'big', atk:3, def:3, hp:5, id:Date.now() });
                     addLog("💪 摧毁陷阱，攻击+1，但召唤了一只大怪", 'event');
                 } },
-                { text: "🔮 封印陷阱 (+1防, 随机清除一只小怪)", effect: (p,m) => { 
-                    p.def++; 
+                { text: "🔮 封印陷阱 (+1防, 随机清除一只小怪)", effect: (p,m) => {
+                    p.def++;
                     const smallMonsters = m.filter(mon => mon.type === 'small');
                     if (smallMonsters.length > 0) {
                         const idx = m.findIndex(mon => mon.type === 'small');
@@ -859,8 +859,8 @@
             title: "🧪 神秘泉水",
             desc: "你发现一汪发光的泉水，喝下它会有什么效果？",
             options: [
-                { text: "💙 喝一大口 (随机属性+1, 但可能中毒)", effect: (p,m) => { 
-                    if(Math.random()<0.5) { p.atk++; addLog("💙 攻击+1", 'event'); } 
+                { text: "💙 喝一大口 (随机属性+1, 但可能中毒)", effect: (p,m) => {
+                    if(Math.random()<0.5) { p.atk++; addLog("💙 攻击+1", 'event'); }
                     else { p.def++; addLog("💙 防御+1", 'event'); }
                     if(Math.random()<0.3) { p.hp = Math.max(1, p.hp-2); addLog("😵 中毒了，生命-2", 'event'); }
                 } },
@@ -883,7 +883,7 @@
             options: [
                 { text: "🗡️ 买剑 (1攻击, 但花费2生命)", effect: (p,m) => { if(p.hp>2) { p.hp-=2; p.atk++; addLog("🗡️ 购买剑，攻击+1，生命-2", 'event'); } } },
                 { text: "🛡️ 买盾 (1防御, 但花费2生命)", effect: (p,m) => { if(p.hp>2) { p.hp-=2; p.def++; addLog("🛡️ 购买盾，防御+1，生命-2", 'event'); } } },
-                { text: "💰 贿赂 (随机消失一只小怪)", effect: (p,m) => { 
+                { text: "💰 贿赂 (随机消失一只小怪)", effect: (p,m) => {
                     const smallMonsters = m.filter(mon => mon.type === 'small');
                     if (smallMonsters.length > 0) {
                         const idx = m.findIndex(mon => mon.type === 'small');
@@ -901,12 +901,12 @@
             title: "🏺 古代神龛",
             desc: "一个古老的神龛，散发着神秘的光芒...",
             options: [
-                { text: "🙏 祈祷 (50%几率全属性+1, 50%召唤怪物)", effect: (p,m) => { 
-                    if(Math.random()<0.5) { 
-                        p.atk++; p.def++; p.maxHp++; p.hp++; 
+                { text: "🙏 祈祷 (50%几率全属性+1, 50%召唤怪物)", effect: (p,m) => {
+                    if(Math.random()<0.5) {
+                        p.atk++; p.def++; p.maxHp++; p.hp++;
                         addLog("🙏 祈祷应验！全属性+1", 'event');
-                    } else { 
-                        m.push({ row: p.row, col: p.col, type:'big', atk:4, def:4, hp:8, id:Date.now() }); 
+                    } else {
+                        m.push({ row: p.row, col: p.col, type:'big', atk:4, def:4, hp:8, id:Date.now() });
                         addLog("🙏 祈祷招来了灾祸！一只大怪出现", 'event');
                     }
                 } },
@@ -920,11 +920,11 @@
         if (waitingForEvent) return;
         waitingForEvent = true;
         stats.eventsTriggered++;
-        
+
         const evt = events[Math.floor(Math.random() * events.length)];
         modalTitle.innerText = evt.title;
         modalDesc.innerText = evt.desc;
-        
+
         modalButtons.innerHTML = '';
         evt.options.forEach((opt, idx) => {
             const btn = document.createElement('button');
@@ -938,7 +938,7 @@
                     showGameOverModal(false);
                 }
                 if (monsters.length > MAX_MONSTERS) monsters = monsters.slice(0, MAX_MONSTERS);
-                
+
                 updateStats();
                 draw();
                 eventModal.style.display = 'none';
@@ -946,7 +946,7 @@
             };
             modalButtons.appendChild(btn);
         });
-        
+
         eventModal.style.display = 'flex';
     }
 
@@ -962,10 +962,10 @@
         let playerDamage = Math.max(1, player.atk - m.def + (Math.random() < 0.2 ? 1 : 0));
         let oldHp = m.hp;
         m.hp -= playerDamage;
-        
+
         let monsterName = m.type === 'boss' ? 'Boss' : (m.type === 'big' ? '大怪' : '小怪');
         addLog(`⚔️ 你对${monsterName}造成 ${playerDamage} 点伤害 (${monsterName} HP: ${oldHp}→${m.hp})`, 'fight');
-        
+
         if (m.hp <= 0) {
             if (m.type === 'boss') {
                 stats.bossKilled = true;
@@ -978,7 +978,7 @@
             } else {
                 stats.smallKills++;
             }
-            
+
             let upgradeChance = m.type === 'big' ? 0.5 : 0.25;
             if (Math.random() < upgradeChance) {
                 let r = Math.random();
@@ -993,8 +993,8 @@
             let oldPlayerHp = player.hp;
             player.hp -= monsterDamage;
             addLog(`💥 ${monsterName}反击，对你造成 ${monsterDamage} 点伤害 (你的HP: ${oldPlayerHp}→${player.hp})`, 'fight');
-            if (player.hp <= 0) { 
-                player.hp = 0; 
+            if (player.hp <= 0) {
+                player.hp = 0;
                 gameOver = true;
                 addLog(`💔 勇者倒下了...`, 'fight');
                 showGameOverModal(false);
@@ -1005,14 +1005,14 @@
 
     function movePlayer(dr, dc) {
         if (gameWin || gameOver || waitingForEvent) return;
-        
+
         let nr = player.row + dr;
         let nc = player.col + dc;
         if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) return;
         if (maze[nr][nc] === 0) return;
-        
+
         stats.steps++;
-        
+
         let monsterHere = monsters.findIndex(m => m.row === nr && m.col === nc);
         if (monsterHere !== -1) {
             fightMonster(monsterHere);
@@ -1020,10 +1020,10 @@
             draw();
             return;
         }
-        
+
         player.row = nr;
         player.col = nc;
-        
+
         let cell = maze[nr][nc];
         if (cell >= 2 && cell <= 4) {
             stats.itemsCollected++;
@@ -1038,21 +1038,21 @@
             tryGoDown();
             return;
         }
-        
+
         updateStats();
         draw();
-        
+
         if (!waitingForEvent && !gameWin && !gameOver) moveMonsters();
     }
 
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         for (let r=0; r<SIZE; r++) {
             for (let c=0; c<SIZE; c++) {
                 const x = c*CELL_SIZE, y = r*CELL_SIZE;
                 let cell = maze[r][c];
-                
+
                 if (cell === 0) {
                     ctx.fillStyle = '#1d4f5a';
                     ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
@@ -1063,11 +1063,11 @@
                     ctx.fillRect(x, y, CELL_SIZE-1, CELL_SIZE-1);
                     ctx.fillStyle = '#9a8b76';
                     ctx.fillRect(x+2, y+2, CELL_SIZE-5, CELL_SIZE-5);
-                    
+
                     ctx.font = 'bold 16px "Segoe UI", "Courier New", monospace';
                     ctx.fillStyle = '#000000';
                     ctx.shadowBlur = 8;
-                    
+
                     if (cell === 2) {
                         ctx.shadowColor = 'white';
                         ctx.fillText('🗡️', x+5, y+18);
@@ -1092,7 +1092,7 @@
                 ctx.strokeRect(x, y, CELL_SIZE, CELL_SIZE);
             }
         }
-        
+
         monsters.forEach(m => {
             const x = m.col*CELL_SIZE, y = m.row*CELL_SIZE;
             if (m.type === 'boss') {
@@ -1103,13 +1103,13 @@
                 ctx.shadowBlur = 12; ctx.shadowColor = 'darkred';
             }
             ctx.beginPath();
-            ctx.moveTo(x+5, y+2); ctx.lineTo(x+20, y+2); ctx.lineTo(x+23, y+12); 
+            ctx.moveTo(x+5, y+2); ctx.lineTo(x+20, y+2); ctx.lineTo(x+23, y+12);
             ctx.lineTo(x+20, y+22); ctx.lineTo(x+5, y+22); ctx.lineTo(x+2, y+12); ctx.closePath();
             ctx.fill();
             ctx.fillStyle = 'white'; ctx.font = 'bold 9px monospace'; ctx.shadowBlur = 0;
             ctx.fillText('❤️'+m.hp, x+3, y+16);
         });
-        
+
         const px = player.col*CELL_SIZE, py = player.row*CELL_SIZE;
         ctx.fillStyle = '#3bc0db'; ctx.shadowBlur = 15; ctx.shadowColor = '#1f8a9c';
         ctx.beginPath(); ctx.arc(px+12, py+12, 10, 0, 2*Math.PI); ctx.fill();
@@ -1133,17 +1133,17 @@
         if (!['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(key)) return;
         e.preventDefault();
         if (gameWin || gameOver || waitingForEvent) return;
-        
+
         if (key === 'ArrowUp') movePlayer(-1, 0);
         else if (key === 'ArrowDown') movePlayer(1, 0);
         else if (key === 'ArrowLeft') movePlayer(0, -1);
         else if (key === 'ArrowRight') movePlayer(0, 1);
     }
-    
+
     window.addEventListener('keydown', onKey);
-    window.onclick = function(e) { 
+    window.onclick = function(e) {
         if (e.target === eventModal) {
-            eventModal.style.display = 'none'; 
+            eventModal.style.display = 'none';
             waitingForEvent = false;
         }
         if (e.target === confirmModal) {
