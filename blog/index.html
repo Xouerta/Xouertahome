@@ -146,12 +146,13 @@
         /* 文章列表区域 */
         .posts-container {
             margin: 30px 0;
+            min-height: 400px;
         }
 
         /* 加载状态 */
         .loading-spell {
             text-align: center;
-            padding: 50px;
+            padding: 60px;
             font-size: 1.5rem;
             color: #5a3e2a;
             animation: pulseGlow 2s infinite;
@@ -160,6 +161,36 @@
         @keyframes pulseGlow {
             0%, 100% { opacity: 0.6; text-shadow: 0 0 5px #ffaa33; }
             50% { opacity: 1; text-shadow: 0 0 20px #ffaa33, 0 0 40px #ff8833; }
+        }
+
+        /* 错误状态 */
+        .error-spell {
+            text-align: center;
+            padding: 60px;
+            color: #8b3a2a;
+            font-size: 1.3rem;
+            background: #f0dbb0aa;
+            border-radius: 20px;
+            border: 2px solid #aa5a3a;
+        }
+
+        .retry-button {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: #7a5a3a;
+            color: #f0dbb0;
+            border: 2px solid #dbb06c;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background: #9f7e54;
+            transform: translateY(-3px);
+            box-shadow: 0 0 20px #ffaa33;
         }
 
         /* 文章网格 */
@@ -312,7 +343,6 @@
 
     <!-- 分类筛选 -->
     <div class="magic-schools" id="category-filters">
-        <span class="school-tag active" data-category="all">全部卷轴</span>
         <!-- 分类会通过 JavaScript 动态生成 -->
     </div>
 
@@ -383,121 +413,46 @@
     })();
 
     // ===== 文章数据管理 =====
-    // 这里定义文章列表（在实际使用中，可以从外部 JSON 文件加载）
-    const postsData = [
-        {
-            file: 'first-adventure.md',
-            title: '迷雾森林的初次冒险',
-            excerpt: '作为一名初出茅庐的冒险者，我在迷雾森林遇到了会说话的狐狸和发光的蘑菇...',
-            category: '游记',
-            date: '迷雾纪 34年 星辉月',
-            level: '入门',
-            order: 1
-        },
-        {
-            file: 'dragon-lore.md',
-            title: '上古巨龙的元素低语',
-            excerpt: '在风暴峭壁之巅，我与一头古老的巨龙交谈。它告诉我，元素不是被驾驭的，而是被理解的。',
-            category: '元素魔法',
-            date: '迷雾纪 34年 霜降月',
-            level: '进阶',
-            order: 2
-        },
-        {
-            file: 'magic-theory.md',
-            title: '魔法三定律：从入门到放弃',
-            excerpt: '每个法师都必须知道的三大定律，以及为什么我建议你准备好足够的耐心再开始...',
-            category: '理论',
-            date: '迷雾纪 33年 暗影月',
-            level: '进阶',
-            order: 3
-        },
-        {
-            file: 'alchemy-101.md',
-            title: '炼金术士的锅：常见失误大全',
-            excerpt: '我炸掉过七个坩埚后，总结出了这份炼金避坑指南。',
-            category: '炼金术',
-            date: '迷雾纪 33年 黎明月',
-            level: '入门',
-            order: 4
-        },
-        {
-            file: 'rune-decoding.md',
-            title: '矮人符文解读：地下城的秘密',
-            excerpt: '在卡兹莫丹的地下遗迹中，我发现了一套从未被记载的古代符文系统...',
-            category: '古代符文',
-            date: '迷雾纪 32年 星辉月',
-            level: '高级',
-            order: 5
-        },
-        {
-            file: 'necromancy-ethics.md',
-            title: '骸骨低语者：死灵法术中的生命伦理',
-            excerpt: '死灵法术并非只有黑暗。在古老墓穴中，我学会了如何让逝者的记忆以另一种方式延续...',
-            category: '死灵学派',
-            date: '迷雾纪 32年 迷雾月',
-            level: '进阶',
-            order: 6
-        },
-        // 添加更多文章...
-        {
-            file: 'vue-and-react.md',
-            title: '游侠的远见：Vue/React的单向箭',
-            excerpt: '游侠是森林的守护者，他们擅长追踪（状态追踪）、设陷阱（生命周期钩子）、射箭（数据流）。Vue是精灵族的优雅箭术，React是人类的精准弩箭。。',
-            category: '元素魔法',
-            date: '迷雾纪 31年 炉火月',
-            level: '进阶',
-            order: 7
-        },
-        {
-            file: 'ts-master.md',
-            title: '血精灵的复仇：征服类型地狱',
-            excerpt: 'TypeScript是前端学习必不可少的一部分 properly learn it is a mystery to me...',
-            category: '死灵学派',
-            date: '迷雾纪 31年 黎明月',
-            level: '进阶',
-            order: 8
-        },
-        {
-            file: 'vue-master.md',
-            title: '精灵猎手的试炼：从Vue新手到框架大师',
-            excerpt: '关于vue的深层试炼，这是成为精英猎手的下一步……',
-            category: '理论',
-            date: '迷雾纪 31年 黎明月',
-            level: '高级',
-            order: 9
-        },
-        {
-            file: 'build-store.md',
-            title: '闪金镇的武器铺：前端基本装备',
-            excerpt: '拜访铁匠大师，学习如何配置你的开发装备并应对那些头疼的报错',
-            category: '游记',
-            date: '迷雾纪 31年 黎明月',
-            level: '进阶',
-            order: 10
-        },
-        {
-            file: 'muti-end.md',
-            title: '龙眠联军：跨端开发实战手册',
-            excerpt: '如何团结各个不同应用，让他们各司其职，本文讲述跨端应用开发',
-            category: '理论',
-            date: '迷雾纪 31年 黎明月',
-            level: '高级',
-            order: 11
-        },
-        {
-            file: 'better-webpage.md',
-            title: '《探险者协会：前端性能优化考古指南》',
-            excerpt: '永远记住没有人愿意多等哪怕一秒！关于前端的魔法优化',
-            category: '古代符文',
-            date: '迷雾纪 31年 黎明月',
-            level: '高级->传奇',
-            order: 12
-        },
-    ];
+    let postsData = [];
+    let currentFilter = 'all';
 
-    // 按日期排序（最新的在前面）
-    postsData.sort((a, b) => b.order - a.order);
+    // 加载文章数据
+    async function loadPosts() {
+        const container = document.getElementById('posts-container');
+
+        try {
+            // 显示加载状态
+            container.innerHTML = '<div class="loading-spell">✨ 正在召唤卷轴 ...</div>';
+
+            // 从JSON文件加载数据
+            const response = await fetch('list.json');
+
+            if (!response.ok) {
+                throw new Error(`召唤仪式失败 (${response.status})`);
+            }
+
+            postsData = await response.json();
+
+            // 按order排序（最新的在前面）
+            postsData.sort((a, b) => b.order - a.order);
+
+            // 渲染分类标签和文章
+            renderCategories();
+            renderPosts('all');
+
+        } catch (error) {
+            console.error('加载失败:', error);
+            container.innerHTML = `
+                <div class="error-spell">
+                    ⚠️ 召唤仪式失败：${error.message}<br>
+                    可能是卷轴暂时被魔法屏障阻隔。
+                    <div>
+                        <button class="retry-button" onclick="loadPosts()">🔄 重新召唤</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
 
     // ===== 渲染文章列表 =====
     function renderPosts(filterCategory = 'all') {
@@ -518,27 +473,24 @@
 
         filteredPosts.forEach(post => {
             html += `
-                    <article class="post-card">
-                        <div class="post-meta">
-                            <span class="post-category">${post.category}</span>
-                            <span class="post-date">${post.date}</span>
-                        </div>
-                        <h2 class="post-title">${post.title}</h2>
-                        <p class="post-excerpt">${post.excerpt}</p>
-                        <span class="post-level">🔮 ${post.level}</span>
-                        <div>
-                            <a href="read.html?post=${post.file}" class="continue-link">阅读卷轴</a>
-                        </div>
-                    </article>
-                `;
+                <article class="post-card">
+                    <div class="post-meta">
+                        <span class="post-category">${post.category}</span>
+                        <span class="post-date">${post.date}</span>
+                    </div>
+                    <h2 class="post-title">${post.title}</h2>
+                    <p class="post-excerpt">${post.excerpt}</p>
+                    <span class="post-level">🔮 ${post.level}</span>
+                    <div>
+                        <a href="read.html?post=${post.file}" class="continue-link">阅读卷轴</a>
+                    </div>
+                </article>
+            `;
         });
 
         html += '</div>';
 
-        // 模拟加载延迟，让效果更自然
-        setTimeout(() => {
-            container.innerHTML = html;
-        }, 800);
+        container.innerHTML = html;
     }
 
     // ===== 生成分类标签 =====
@@ -548,7 +500,7 @@
         // 提取所有不重复的分类
         const categories = ['all', ...new Set(postsData.map(post => post.category))];
 
-        // 清空容器（保留第一个"全部卷轴"）
+        // 清空容器
         filterContainer.innerHTML = '';
 
         // 重新生成标签
@@ -563,8 +515,11 @@
                 document.querySelectorAll('.school-tag').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
 
+                // 更新当前筛选
+                currentFilter = this.dataset.category;
+
                 // 重新渲染文章
-                renderPosts(this.dataset.category);
+                renderPosts(currentFilter);
             });
 
             filterContainer.appendChild(tag);
@@ -573,8 +528,7 @@
 
     // ===== 初始化 =====
     window.addEventListener('load', () => {
-        renderCategories();
-        renderPosts('all');
+        loadPosts();
     });
 </script>
 </body>
