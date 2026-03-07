@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xouerta · 前端法师学徒</title>
+    <title>Xouerta · 前端学徒</title>
     <style>
         /* ===== 全局重置与字体 ===== */
         * {
@@ -12,6 +12,7 @@
             box-sizing: border-box;
         }
 
+        /* 中世纪 / 地下城风格字体 */
         @import url('https://fonts.googleapis.com/css2?family=MedievalSharp&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Fira+Code:wght@400;600&display=swap');
 
         body {
@@ -211,7 +212,7 @@
             51%, 100% { opacity: 0; }
         }
 
-        /* ===== 技能面板 ===== */
+        /* ===== 技能面板 (点击跳转官网) ===== */
         .skills-section {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -228,9 +229,12 @@
             text-align: center;
             box-shadow: 4px 4px 0 #4a3222, 0 0 20px #ffd27f33;
             transition: all 0.3s ease;
-            cursor: pointer;
+            cursor: pointer;            /* 可点击 */
             position: relative;
             overflow: hidden;
+            text-decoration: none;      /* 以防内部有a */
+            color: inherit;
+            outline: none;              /* 但保留焦点样式 */
         }
 
         .skill-card:hover {
@@ -239,6 +243,12 @@
             border-color: #ffdb9d;
         }
 
+        .skill-card:active {
+            transform: translateY(-2px) scale(0.98);
+            box-shadow: 2px 2px 0 #3a2a1a;
+        }
+
+        /* 魔法光效 */
         .skill-card::after {
             content: '';
             position: absolute;
@@ -287,7 +297,19 @@
             font-family: 'Fira Code', monospace;
         }
 
-        /* ===== 魔法符文菜单 ===== */
+        /* 为每个等级增添一点独特色彩 (可选) 保留原风格 */
+        .skill-card:nth-child(1) .skill-level { background: #3f5130; } /* React 入门 */
+        .skill-card:nth-child(2) .skill-level { background: #2d5f4b; } /* Vue 进阶 */
+        .skill-card:nth-child(3) .skill-level { background: #4e3b5c; } /* TS */
+        .skill-card:nth-child(4) .skill-level { background: #a1582b; } /* CSS */
+        .skill-card:nth-child(5) .skill-level { background: #0f5b6b; } /* Vite */
+        .skill-card:nth-child(6) .skill-level { background: #4e5f32; } /* Webpack */
+        .skill-card:nth-child(7) .skill-level { background: #704c2c; } /* Git */
+        .skill-card:nth-child(8) .skill-level { background: #1f6d5a; } /* Python */
+        .skill-card:nth-child(9) .skill-level { background: #026aa7; } /* Docker */
+        .skill-card:nth-child(10) .skill-level{ background: #588738; } /* node */
+
+        /* ===== 魔法符文菜单 (保留，只是装饰用——但为了让页面完整，保留原有菜单但去除多余跳转) ===== */
         .rune-menu {
             display: flex;
             flex-wrap: wrap;
@@ -338,7 +360,7 @@
             left: -5px;
         }
 
-        /* 当前页面的高亮 */
+        /* 当前页面的高亮（无链接，仅为装饰） */
         .rune-item.active {
             background: #9f7e54;
             color: #fff2d7;
@@ -431,7 +453,7 @@
 
 <!-- 主卷轴内容 -->
 <main class="scroll-container">
-    <!-- 标题区域 -->
+    <!-- 标题区域（完全按你的来） -->
     <div class="hero-section">
         <h1 class="hero-title">✦ Xouerta · 前端法师 ✦</h1>
         <div class="hero-subtitle">「 前端学徒 · 不喜欢css · 地下城老鼠猎杀者 」</div>
@@ -447,54 +469,64 @@
         </div>
     </div>
 
-    <!-- 技能面板（替换原来的属性） -->
-    <div class="skills-section">
-        <div class="skill-card">
+    <!-- 技能面板（完全保留原始class，并添加 data-url 实现跳转） -->
+    <div class="skills-section" id="skillSection">
+        <!-- React 官网 -->
+        <div class="skill-card" data-url="https://react.dev" tabindex="0" role="link" aria-label="React 官网">
             <div class="skill-icon">⚛️</div>
             <div class="skill-name">React</div>
             <div class="skill-level">入门级</div>
         </div>
-        <div class="skill-card">
+        <!-- Vue 官网 -->
+        <div class="skill-card" data-url="https://vuejs.org" tabindex="0" role="link" aria-label="Vue 官网">
             <div class="skill-icon">▲</div>
             <div class="skill-name">Vue</div>
             <div class="skill-level">进阶</div>
         </div>
-        <div class="skill-card">
+        <!-- TypeScript 官网 -->
+        <div class="skill-card" data-url="https://www.typescriptlang.org" tabindex="0" role="link" aria-label="TypeScript 官网">
             <div class="skill-icon">⎇</div>
             <div class="skill-name">TypeScript</div>
             <div class="skill-level">基础级</div>
         </div>
-        <div class="skill-card">
+        <!-- CSS 官网（W3C） -->
+        <div class="skill-card" data-url="https://www.w3.org/Style/CSS/" tabindex="0" role="link" aria-label="CSS 规范官网">
             <div class="skill-icon">🎨</div>
             <div class="skill-name">CSS魔法</div>
             <div class="skill-level">学徒级</div>
         </div>
-        <div class="skill-card">
+        <!-- Vite 官网 -->
+        <div class="skill-card" data-url="https://vitejs.dev" tabindex="0" role="link" aria-label="Vite 官网">
             <div class="skill-icon">⚡</div>
             <div class="skill-name">Vite</div>
             <div class="skill-level">进阶</div>
         </div>
-        <div class="skill-card">
+        <!-- Webpack 官网 -->
+        <div class="skill-card" data-url="https://webpack.js.org" tabindex="0" role="link" aria-label="Webpack 官网">
             <div class="skill-icon">📦</div>
             <div class="skill-name">Webpack</div>
             <div class="skill-level">熟练</div>
         </div>
-        <div class="skill-card">
+        <!-- Git 官网 -->
+        <div class="skill-card" data-url="https://git-scm.com" tabindex="0" role="link" aria-label="Git 官网">
             <div class="skill-icon">👾</div>
             <div class="skill-name">Git</div>
             <div class="skill-level">基础级</div>
         </div>
-        <div class="skill-card">
+        <!-- Python 官网 -->
+        <div class="skill-card" data-url="https://www.python.org" tabindex="0" role="link" aria-label="Python 官网">
             <div class="skill-icon">🐉</div>
             <div class="skill-name">python</div>
             <div class="skill-level">基础级</div>
         </div>
-        <div class="skill-card">
+        <!-- Docker 官网 -->
+        <div class="skill-card" data-url="https://www.docker.com" tabindex="0" role="link" aria-label="Docker 官网">
             <div class="skill-icon">🐋</div>
             <div class="skill-name">Docker</div>
             <div class="skill-level">基础级</div>
         </div>
-        <div class="skill-card">
+        <!-- Node.js 官网 -->
+        <div class="skill-card" data-url="https://nodejs.org" tabindex="0" role="link" aria-label="Node.js 官网">
             <div class="skill-icon">🥝</div>
             <div class="skill-name">node</div>
             <div class="skill-level">熟练</div>
@@ -502,7 +534,6 @@
     </div>
 
 
-    <!-- 魔法符文菜单（导航到各个页面） -->
     <nav class="rune-menu">
         <a href="index.html" class="rune-item active">🏠 旅者大厅·稍作休息</a>
         <a href="blog/index.html" class="rune-item">📖 知识卷轴·过往分享</a>
@@ -527,7 +558,7 @@
 </main>
 
 <script>
-    // ===== 魔法粒子效果 =====
+    // ===== 魔法粒子效果 (保持不变) =====
     (function() {
         const canvas = document.getElementById('magic-particles');
         const ctx = canvas.getContext('2d');
@@ -540,7 +571,6 @@
             canvas.width = width;
             canvas.height = height;
 
-            // 创建粒子
             particles = [];
             for (let i = 0; i < 50; i++) {
                 particles.push({
@@ -565,11 +595,9 @@
                 ctx.shadowBlur = 15;
                 ctx.fill();
 
-                // 移动粒子
                 p.x += p.speedX;
                 p.y += p.speedY;
 
-                // 边界回弹
                 if (p.x < 0 || p.x > width) p.speedX *= -1;
                 if (p.y < 0 || p.y > height) p.speedY *= -1;
             });
@@ -585,7 +613,7 @@
         drawParticles();
     })();
 
-    // ===== 打字机效果（前端法师版） =====
+    // ===== 打字机效果（前端法师版——保留你原来的文案） =====
     (function() {
         const typedTextElement = document.getElementById('typed-text');
         const textLines = [
@@ -609,18 +637,16 @@
                 const currentLine = textLines[lineIndex];
 
                 if (!isDeleting) {
-                    // 打字
                     currentHTML = currentLine.substring(0, charIndex + 1);
                     typedTextElement.innerHTML = currentHTML + '<span class="cursor">|</span>';
                     charIndex++;
 
                     if (charIndex === currentLine.length) {
                         isDeleting = true;
-                        setTimeout(typeEffect, 800); // 行末暂停
+                        setTimeout(typeEffect, 800);
                         return;
                     }
                 } else {
-                    // 删除（可选）
                     isDeleting = false;
                     lineIndex++;
                     charIndex = 0;
@@ -628,7 +654,6 @@
                     return;
                 }
             } else {
-                // 全部打完，光标继续闪烁
                 typedTextElement.innerHTML = textLines.join('') + '<span class="cursor">|</span>';
                 return;
             }
@@ -637,43 +662,70 @@
             setTimeout(typeEffect, speed);
         }
 
-        // 页面加载后开始打字效果
         window.addEventListener('load', () => {
             setTimeout(typeEffect, 500);
         });
     })();
 
-    // ===== 技能卡片的涟漪效果 =====
-    document.querySelectorAll('.skill-card').forEach(card => {
-        card.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            ripple.style.position = 'absolute';
-            ripple.style.borderRadius = '50%';
-            ripple.style.backgroundColor = '#ffffff88';
-            ripple.style.pointerEvents = 'none';
-            ripple.style.left = e.offsetX + 'px';
-            ripple.style.top = e.offsetY + 'px';
-            ripple.style.width = '10px';
-            ripple.style.height = '10px';
-            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
-            ripple.style.animation = 'ripple 0.6s ease-out forwards';
-            ripple.style.zIndex = '100';
+    // ===== 核心修改：技能卡片点击跳转官网（新标签页） =====
+    (function() {
+        const cards = document.querySelectorAll('.skill-card');
+        function openUrl(event) {
+            const card = event.currentTarget;
+            const url = card.dataset.url;
+            if (url) {
+                window.open(url, '_blank', 'noopener,noreferrer');
+            } else {
+                console.warn('未配置官网链接', card);
+            }
+        }
 
-            // 添加动画关键帧
-            const style = document.createElement('style');
-            style.textContent = `
-                    @keyframes ripple {
-                        to { transform: translate(-50%, -50%) scale(20); opacity: 0; }
-                    }
-                `;
-            document.head.appendChild(style);
-
-            this.style.position = 'relative';
-            this.appendChild(ripple);
-
-            setTimeout(() => ripple.remove(), 600);
+        cards.forEach(card => {
+            card.addEventListener('click', openUrl);
+            // card.addEventListener('keydown', (e) => {
+            //     if (e.key === 'Enter' || e.key === ' ') {
+            //         e.preventDefault();
+            //         openUrl(e);
+            //     }
+            // });
         });
-    });
+    })();
+
+    // ===== 涟漪效果（点击时的波纹，轻量保留） =====
+    (function() {
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to { transform: translate(-50%, -50%) scale(20); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        document.querySelectorAll('.skill-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.backgroundColor = '#ffffff88';
+                ripple.style.pointerEvents = 'none';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.width = '10px';
+                ripple.style.height = '10px';
+                ripple.style.transform = 'translate(-50%, -50%) scale(0)';
+                ripple.style.animation = 'ripple 0.6s ease-out forwards';
+                ripple.style.zIndex = '100';
+                this.style.position = 'relative';
+                this.appendChild(ripple);
+
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    })();
 </script>
 </body>
 </html>
