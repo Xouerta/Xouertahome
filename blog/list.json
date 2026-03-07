@@ -6,7 +6,7 @@
     "category": "游记",
     "date": "迷雾纪 34年 星辉月",
     "level": "入门",
-    "order": 13
+    "order": 1
   },
   {
     "file": "dragon-lore.md",
@@ -15,7 +15,7 @@
     "category": "元素魔法",
     "date": "迷雾纪 34年 霜降月",
     "level": "进阶",
-    "order": 12
+    "order": 2
   },
   {
     "file": "magic-theory.md",
@@ -24,7 +24,7 @@
     "category": "理论",
     "date": "迷雾纪 33年 暗影月",
     "level": "进阶",
-    "order": 11
+    "order": 3
   },
   {
     "file": "alchemy-101.md",
@@ -33,7 +33,7 @@
     "category": "炼金术",
     "date": "迷雾纪 33年 黎明月",
     "level": "入门",
-    "order": 10
+    "order": 4
   },
   {
     "file": "rune-decoding.md",
@@ -42,7 +42,7 @@
     "category": "古代符文",
     "date": "迷雾纪 32年 星辉月",
     "level": "高级",
-    "order": 9
+    "order": 5
   },
   {
     "file": "necromancy-ethics.md",
@@ -51,7 +51,7 @@
     "category": "死灵学派",
     "date": "迷雾纪 32年 迷雾月",
     "level": "进阶",
-    "order": 8
+    "order": 6
   },
   {
     "file": "vue-and-react.md",
@@ -69,7 +69,7 @@
     "category": "死灵学派",
     "date": "迷雾纪 31年 黎明月",
     "level": "进阶",
-    "order": 6
+    "order": 8
   },
   {
     "file": "vue-master.md",
@@ -78,7 +78,7 @@
     "category": "理论",
     "date": "迷雾纪 31年 黎明月",
     "level": "高级",
-    "order": 5
+    "order": 9
   },
   {
     "file": "build-store.md",
@@ -87,7 +87,7 @@
     "category": "游记",
     "date": "迷雾纪 31年 黎明月",
     "level": "进阶",
-    "order": 4
+    "order": 10
   },
   {
     "file": "muti-end.md",
@@ -96,7 +96,7 @@
     "category": "理论",
     "date": "迷雾纪 31年 黎明月",
     "level": "高级",
-    "order": 3
+    "order": 11
   },
   {
     "file": "better-webpage.md",
@@ -105,7 +105,7 @@
     "category": "古代符文",
     "date": "迷雾纪 31年 黎明月",
     "level": "高级→传奇",
-    "order": 2
+    "order": 12
   },
   {
     "file": "daily-post260306.md",
@@ -114,6 +114,33 @@
     "category": "每日委托",
     "date": "26年03月06日",
     "level": "入门",
-    "order": 1
+    "order": 13
+  },
+  {
+    "file": "daily-post260307.md",
+    "title": "每日委托-002：背包问题",
+    "excerpt": "如何进行排序和整理",
+    "category": "每日委托",
+    "date": "26年03月07日",
+    "level": "入门",
+    "order": 14
+  },
+  {
+    "file": "daily-post260308.md",
+    "title": "每日委托-003：魔力石问题",
+    "excerpt": "计算获得魔力石的概率",
+    "category": "每日委托",
+    "date": "26年03月08日",
+    "level": "入门",
+    "order": 15
+  },
+  {
+    "file": "ssr.md",
+    "title": "后排输出的乐趣：SSR实战",
+    "excerpt": "服务端渲染的魅力",
+    "category": "死灵法术",
+    "date": "26年03月09日",
+    "level": "高级",
+    "order": 16
   }
 ]
